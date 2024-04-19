@@ -10,12 +10,13 @@ def split_file(fname):
     first_line = True
     legenda = ""
     for line in f_in:
+      line = line.replace(' ', '')
+
       if first_line:
         legenda = line
         first_line = False
         continue
 
-      line = line.replace(' ', '')
       event_number = int(line.split(',')[0])
 
       if event_number != event_number_prev:

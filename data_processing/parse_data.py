@@ -58,11 +58,7 @@ def get_trackId_to_hits_dict(path_hits, trackId_to_track_params=None) -> dict:
         # Удаляем вторичные треки
         if trackId_to_track_params:
             if not selector.select(id_track, trackId_to_track_params):
-           
-#           params = trackId_to_track_params[id_track]
-#           primary = params[0]
-#           if not trackId_to_track_params[id_track]:
-#           if not primary:
+
                 hits.pop(id_track)
                 continue
         hits[id_track] = sort_hits(hits[id_track])
@@ -88,15 +84,18 @@ def get_trackId_to_track_params(path) -> dict:
             if 'format' in i:
                 continue
 
-#           trackId_to_track_params[info[0]] = info[1]
             splitted = i.split(",")
+
+            q_str = splitted[6]
+            q = float(q_str) # if q_str == 'nan' => q = nan
 
             info = [
                 int(splitted[0]),   # trackId  - key
                 int(splitted[1]),   # is primary [0]
                 int(splitted[2]),   # nHits      [1]
                 float(splitted[3]), # pt         [2]
-                float(splitted[4])  # eta        [3]
+                float(splitted[4]), # eta        [3]
+                q                   # charge     [4]
             ]
 
             trackId_to_track_params[info[0]] = info[1:]

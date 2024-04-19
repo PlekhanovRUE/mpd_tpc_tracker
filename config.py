@@ -8,6 +8,9 @@ only_primary     = True
 n_proto_hits_min =    6
 ratio            =  0.5
 
+start_event = 0
+end_event   = 9
+
 fname_real_tracks = "real_tracks_{}.txt"
 fname_track_candidates  = "track_candidates_{}.txt"
 

@@ -5,8 +5,9 @@ from post_processing import (direct_merging, graph_merging,
 import config
 import save_to_files
 import datetime
+import psutil
 
-from analyse.validation import calc_characteristics
+from analyse.validation import calc_characteristics, calc_mult
 from analyse.visualizing import MainWindow
 from data_processing.parse_data import *
 from PyQt6.QtWidgets import QApplication
@@ -27,6 +28,8 @@ def find_file(f_name, dir_list):
         if os.path.exists(full_f_name_local):
             full_f_name = full_f_name_local
             break
+    if full_f_name == "":
+        print(f"Warning: find_file(): can not find {f_name}")
     return full_f_name
 
 
@@ -53,7 +56,7 @@ def post_process():
         save_to_files.write_track_candidates_header(fname)
 
 #   dirs = ['data/tracks_data']
-    dirs = [ \
+    dirs = [
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/0_1000',
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/1000_1800',
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/1801_2989',
@@ -61,72 +64,82 @@ def post_process():
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/4186_4364',
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/4367_4999',
             '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/5000_5202',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/5204_6203'
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/5204_6203',
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/6204_7203',
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/7204_8103',
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/8104_8184',
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/8185_9184',
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/9185_9999'
+    ]
+#   track_candidates_params_fname = "data/data_for_ml/track_candidates_params.csv"
+    dirs_param = [
+            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/track_candidates_params'
+    ]
+    dirs_mc = [
+            '/home/belecky/work/mpdroot/bin_dump_pdg/macros/common'
     ]
 
-#   track_candidates_params_fname = "data/data_for_ml/track_candidates_params.csv"
-    track_candidates_params_fname = \
-        "/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/track_candidates_params.txt"
+    d = int((config.end_event - config.start_event + 1) / config.n_parts)
 
-    print("Before reading csv")
-    print (datetime.datetime.now())
-    nn_data = pd.read_csv(track_candidates_params_fname)
-    print("After reading csv")
-    print (datetime.datetime.now())
+    i_part = int(sys.argv[1])
+    start_event_i = config.start_event + d * i_part
+    end_event_i   = config.start_event + d *(i_part + 1) - 1
+    out_file_postfix = i_part
 
-    start_event = 0
-    end_event = 6203
+    print(f"i: {i_part}, start_event_i: {start_event_i}, "
+          f" end_event_i: {end_event_i}")
 
-    for iEvent in range(start_event, end_event + 1):
+    # Upload data and settings for NNS (Can be commented out if you don't use NNS)
+    model = create_model()
+    model.load_weights('data/data_for_ml/checkpoint_dir/cp.ckpt')
+
+    for iEvent in range(config.start_event, config.end_event + 1):
         print(f"Event #{iEvent}")
 
-        prototracks_fname = find_file(
-                f"event_{iEvent}_prototracks.txt", dirs)
-        space_points_fname = find_file(
-                f"event_{iEvent}_space_points.txt", dirs)
-        mc_track_params_fname = find_file(
-                f"event_{iEvent}_mc_track_params.txt", dirs)
+        prototracks_fname = find_file(f"event_{iEvent}_prototracks.txt", dirs)
+        space_points_fname = find_file(f"event_{iEvent}_space_points.txt", dirs)
+        mc_track_params_fname = find_file(f"event_{iEvent}_mc_track_params.txt", dirs_mc)
+        track_candidates_params = find_file(f"event_{iEvent}_track_candidates_params.txt", dirs_param)
 
-        if (prototracks_fname     == "") or \
-           (space_points_fname    == "") or \
-           (mc_track_params_fname == ""):
-            print(f"WARNING: post_process(): iEvent: {iEvent}: can not find input file")
+        if (prototracks_fname       == "") or \
+           (space_points_fname      == "") or \
+           (mc_track_params_fname   == "") or \
+           (track_candidates_params == ""):
             continue
 
         # Upload data
-
         data_from_get_tracks_data = get_tracks_data(prototracks_fname,
                                                     space_points_fname)
 
-        if (False):
-            print("Printing data_from_get_tracks_data: begin")
-            for i, val in enumerate(data_from_get_tracks_data):
-                print(f"data_from_get_tracks_data: #{i}: {val}")
-            print("Printing data_from_get_tracks_data: end")
-            exit()
-
         result = {"RAW": get_tracks_data(prototracks_fname, space_points_fname)}
+
+        # Strange Check prototracks file not empty
+#       if not result.get("RAW"):
+#           print(f"WARNING: post_process(): iEvent: {iEvent}: no input prototracks")
+#           continue
         hit_list = get_hits(space_points_fname)
         trackId_to_track_params = get_trackId_to_track_params(
                 mc_track_params_fname)
+
+        mult_ch_pri = calc_mult(trackId_to_track_params,   # multiplicity by Val Kuz
+                only_pri=True, with_hits=False, charged=True, debug=False)
+        print(f"event_number: {iEvent}; mult_ch_pri(Val) = {mult_ch_pri}")
+
         trackId_to_hits_dict = get_trackId_to_hits_dict(
                 space_points_fname, trackId_to_track_params)
 
-        # Upload data and settings for NNS (Can be commented out if you don't use NNS)
-        model = create_model()
-        model.load_weights('data/data_for_ml/checkpoint_dir/cp.ckpt')
-#       nn_data = pd.read_csv(track_candidates_params_fname)
 
-        df = nn_data[nn_data['#format:eventNumber'] == iEvent]
+        df = pd.read_csv(track_candidates_params)
         indices = df['prototrackIndex']
-        event_num = df['#format:eventNumber']
+#       df = df.iloc[:, 1:-2]
         df = df.iloc[:, 2:-2]
 
         # Use methods
         if df.size == 0:
             result["NNS"] = [[]]
         else:
-            result["NNS"] = cluster_and_neural_net(model, deepcopy(result.get("RAW")), df, event_num, indices, hits=3)
+            result["NNS"] = cluster_and_neural_net(model, deepcopy(result.get("RAW")), df,
+                                                   pd.Series([iEvent] * len(df)), indices, hits=3)
 
         result["PWS"] = direct_cleaning(deepcopy(result.get("RAW")))
         result["PWM"] = direct_merging(deepcopy(result.get("RAW")))
@@ -137,11 +150,18 @@ def post_process():
         # Computation efficiency
         for post_processing_method, result_data in result.items():
             characteristic_dict = calc_characteristics(result_data, hit_list, trackId_to_hits_dict, trackId_to_track_params,
-                method=post_processing_method)
+                method=post_processing_method,
+                mult=mult_ch_pri)
 
             print(f"\n\n################## {post_processing_method} ##################")
+
             time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"{time} event #{iEvent}")
+
+            process = psutil.Process()
+            mem = round(process.memory_info().rss / (1024**2)) # bytes to Mb
+            print(f"memory: {mem} Mb")
+
             for characteristic, value in characteristic_dict.items():
                 print(f"{characteristic}: {value}")
 
