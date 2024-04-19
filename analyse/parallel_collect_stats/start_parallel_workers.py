@@ -16,7 +16,7 @@ def event_pool_analyse(data_for_ml: MlModelData, dirs: list[str], start_event: i
                                        data_for_ml) for event_number in range(start_event, end_event + 1))
         bar_format = "\n\n{n}: events analyzed\n\n"
         pool_size = end_event - start_event
-        print(1)
+
         for future in tqdm(concurrent.futures.as_completed(future_pool), total=pool_size, bar_format=bar_format):
             try:
                 event_characteristics: OneEventRealTrackParams = future.result()
