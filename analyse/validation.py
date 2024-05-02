@@ -135,7 +135,8 @@ def calc_characteristics(track_candidates,
                          min_length_proto=6,
                          ratio=0.5,
                          method='',
-                         mult=0):
+                         mult=0,
+                         event_number=-1):
 
     selected_trackIds = get_selected_trackIds(trackId_to_track_params)
 
@@ -188,6 +189,7 @@ def calc_characteristics(track_candidates,
         real_tracks_is_reco=reco_track_list,
         trackId_to_track_params=trackId_to_track_params,
         mult=mult,
+        event_number=event_number,
         fname=config.fname_real_tracks.format(method))
 
     save_to_files.save_track_candidates(
@@ -195,6 +197,7 @@ def calc_characteristics(track_candidates,
         trackCandParamsList=trackCandParamsList,
         trackId_to_track_params=trackId_to_track_params,
         mult=mult,
+        event_number=event_number,
         fname=config.fname_track_candidates.format(method))
 
     # Save table of reco and not reco track_candidates

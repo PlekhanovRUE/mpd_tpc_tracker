@@ -3,13 +3,14 @@ import os
 def write_real_tracks_header(fname):
     with open(fname, 'w') as f:
         f.write('# format: trackId, is-primary, nHits, pt, eta, multiplicity_charged_primary, '
-                'is-reco' + os.linesep)
+                'is-reco, event_number' + os.linesep)
 
 def write_real_tracks(
         selected_trackIds,
         real_tracks_is_reco,
         trackId_to_track_params,
         mult,
+        event_number,
         fname):
     with open(fname, 'a') as f:
         for trackId in selected_trackIds:
@@ -21,13 +22,13 @@ def write_real_tracks(
 
             is_reco = int(trackId in real_tracks_is_reco)
             f.write(f'{trackId},{pri},{n_hits},{pt},{eta},{mult},'
-                    f'{is_reco}' + os.linesep)
+                    f'{is_reco},{event_number}' + os.linesep)
 
 
 def write_track_candidates_header(fname):
     with open(fname, 'w') as f:
         f.write("# format: isPrimary, nHits, isFake, isDup, pt, eta, "
-                "multiplicity_charged_primary, selected, trackId" + os.linesep)
+                "multiplicity_charged_primary, selected, trackId, event_number" + os.linesep)
 
 
 def to_int(val):
@@ -42,6 +43,7 @@ def save_track_candidates(
         trackCandParamsList,
         trackId_to_track_params,
         mult,
+        event_number,
         fname):
 
     print("save_track_candidates(): len(trackCandParamsList): {}".format(
@@ -93,6 +95,6 @@ def save_track_candidates(
                 eta   = trackId_to_track_params[trackId][3]
 
             f.write(f"{isPri},{nHits},{isFake},{isDup},{pt},{eta},"
-                    f"{mult},{selected},{trackId}" + os.linesep)
+                    f"{mult},{selected},{trackId},{event_number}" + os.linesep)
 
 
