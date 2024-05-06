@@ -1,5 +1,5 @@
 from post_processing.cleaning.direct_cleaning import sort_hits
-import selector
+from selector import select_track_id
 
 from collections import defaultdict
 import re
@@ -57,8 +57,7 @@ def get_trackId_to_hits_dict(path_hits, trackId_to_track_params=None) -> dict:
     for id_track in track_id_list:
         # Удаляем вторичные треки
         if trackId_to_track_params:
-            if not selector.select(id_track, trackId_to_track_params):
-
+            if not select_track_id(id_track, trackId_to_track_params):
                 hits.pop(id_track)
                 continue
         hits[id_track] = sort_hits(hits[id_track])

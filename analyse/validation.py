@@ -1,7 +1,7 @@
 import pandas as pd
 
 import config
-import selector
+from  selector import select_track_ids
 import save_to_files
 import math
 
@@ -14,16 +14,6 @@ def replace_hits_to_track_id(tracks, hits):
             truth_track_id = int(hits[hit_id][3])
             tracks_hits[i].append(truth_track_id)
     return tracks_hits
-
-
-def get_selected_trackIds(trackId_to_track_params):
-    selected_trackIds = []
-
-    for trackId in trackId_to_track_params.keys():
-      if selector.select(trackId, trackId_to_track_params):
-        selected_trackIds.append(trackId)
-
-    return selected_trackIds
 
 
 class TrackCandParams:
@@ -135,10 +125,12 @@ def calc_characteristics(track_candidates,
                          min_length_proto=6,
                          ratio=0.5,
                          method='',
-                         mult=0,
+                         mult_ch=0,
+                         mult_h=0,
+                         out_file_postfix='',
                          event_number=-1):
 
-    selected_trackIds = get_selected_trackIds(trackId_to_track_params)
+    selected_trackIds = select_track_ids(trackId_to_track_params)
 
     # Get all lists of necessary data
     reco_track_list, fake_track_list, duplicate_track_list, trackCandParamsList = \
@@ -188,17 +180,19 @@ def calc_characteristics(track_candidates,
         selected_trackIds=selected_trackIds,
         real_tracks_is_reco=reco_track_list,
         trackId_to_track_params=trackId_to_track_params,
-        mult=mult,
+        mult_ch=mult_ch,
+        mult_h=mult_h,
         event_number=event_number,
-        fname=config.fname_real_tracks.format(method))
+        fname=config.fname_real_tracks.format(method, out_file_postfix))
 
     save_to_files.save_track_candidates(
         selected_trackIds=selected_trackIds,
         trackCandParamsList=trackCandParamsList,
         trackId_to_track_params=trackId_to_track_params,
-        mult=mult,
+        mult_ch=mult_ch,
+        mult_h=mult_h,
         event_number=event_number,
-        fname=config.fname_track_candidates.format(method))
+        fname=config.fname_track_candidates.format(method, out_file_postfix))
 
     # Save table of reco and not reco track_candidates
     # save_recognised_logo(reco_track_list, real_track_list)

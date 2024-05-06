@@ -5,6 +5,8 @@ eta_max          =  2.11
 n_real_hits_min  =    9
 only_primary     = True
 
+only_charged     = True
+
 n_proto_hits_min =    6
 ratio            =  0.5
 
