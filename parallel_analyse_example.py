@@ -15,4 +15,4 @@ if __name__ == "__main__":
                        dirs=dirs,
                        num_workers=4,  # not recommend to set more than there are logical processors
                        start_event=0,
-                       end_event=0)
+                       end_event=10)

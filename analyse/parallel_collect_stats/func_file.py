@@ -32,7 +32,7 @@ def nns_analyse(event_number: int,
     ml_data.calc_event_filed(event_number, dirs)
 
     # Skip empty events
-    if ml_data.event_df.size != 0:
+    if ml_data.event_df.size == 0:
         return [[]]
 
     return nn_method(model=ml_data.model,
@@ -58,7 +58,8 @@ def calculate_one_event_stats(event_number: int, dirs: list[str], ml_data: MlMod
         (real_tracks_param, cand_tracks_param) = calc_parallel_characteristics(tracks,
                                                                                event_data.hits_list,
                                                                                event_data.track_id_to_track_params,
-                                                                               method=method_name)
+                                                                               method=method_name,
+                                                                               event_number=event_number)
         event_characteristics.all_method_for_real_tracks.append(real_tracks_param)
         event_characteristics.all_method_for_cand_tracks.append(cand_tracks_param)
     return event_characteristics

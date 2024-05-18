@@ -1,3 +1,4 @@
+from analyse.parallel_collect_stats.utils import load_csv
 from post_processing import (direct_merging, graph_merging,
                              graph_cleaning, coverage_cleaning,
                              direct_cleaning, create_model,
@@ -70,23 +71,16 @@ def post_process():
             '/home/belecky/work/mpdroot/bin_dump_pdg/macros/common'
     ]
 
-    d = int((config.end_event - config.start_event + 1) / config.n_parts)
-
-    i_part = int(sys.argv[1])
-    start_event_i = config.start_event + d * i_part
-    end_event_i   = config.start_event + d *(i_part + 1) - 1
-    out_file_postfix = i_part
-
-    print(f"i: {i_part}, start_event_i: {start_event_i}, "
-          f" end_event_i: {end_event_i}")
+    start_event_i = config.start_event
+    end_event_i = config.end_event
 
     for method in methods:
-        fname = config.fname_real_tracks.format(method, out_file_postfix)
+        fname = config.fname_real_tracks.format(method)
         if os.path.exists(fname):
             os.remove(fname)
         save_to_files.write_real_tracks_header(fname)
 
-        fname = config.fname_track_candidates.format(method, out_file_postfix)
+        fname = config.fname_track_candidates.format(method)
         if os.path.exists(fname):
             os.remove(fname)
         save_to_files.write_track_candidates_header(fname)
@@ -101,12 +95,12 @@ def post_process():
         prototracks_fname = find_file(f"event_{iEvent}_prototracks.txt", dirs)
         space_points_fname = find_file(f"event_{iEvent}_space_points.txt", dirs)
         mc_track_params_fname = find_file(f"event_{iEvent}_mc_track_params.txt", dirs_mc)
-        track_candidates_params = find_file(f"event_{iEvent}_track_candidates_params.txt", dirs_param)
+        track_candidates_params = find_file(f"track_candidates_params.txt", dirs_param)
 
-        if (prototracks_fname       == "") or \
-           (space_points_fname      == "") or \
-           (mc_track_params_fname   == "") or \
-           (track_candidates_params == ""):
+        if (prototracks_fname == "") or \
+                (space_points_fname == "") or \
+                (mc_track_params_fname == "") or \
+                (track_candidates_params == ""):
             continue
 
         # Upload data
@@ -134,8 +128,8 @@ def post_process():
         trackId_to_hits_dict = get_trackId_to_hits_dict(
                 space_points_fname, trackId_to_track_params)
 
-
-        df = pd.read_csv(track_candidates_params)
+        nn_data = load_csv(track_candidates_params)
+        df = nn_data[nn_data['#format: eventNumber'] == iEvent].reset_index(drop=True)
         indices = df['prototrackIndex']
 #       df = df.iloc[:, 1:-2]
         df = df.iloc[:, 2:-2]
@@ -155,12 +149,12 @@ def post_process():
 
         # Computation efficiency
         for post_processing_method, result_data in result.items():
-            characteristic_dict = calc_characteristics(result_data, hit_list, trackId_to_hits_dict, trackId_to_track_params,
-                method=post_processing_method,
-                mult_ch=mult_ch,
-                mult_h=mult_h,
-                out_file_postfix=out_file_postfix,
-                event_number=iEvent)
+            characteristic_dict = calc_characteristics(result_data, hit_list, trackId_to_hits_dict,
+                                                       trackId_to_track_params,
+                                                       method=post_processing_method,
+                                                       mult_ch=mult_ch,
+                                                       mult_h=mult_h,
+                                                       event_number=iEvent)
 
             print(f"\n\n################## {post_processing_method} ##################")
 

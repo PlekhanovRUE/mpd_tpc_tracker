@@ -183,7 +183,7 @@ def calc_characteristics(track_candidates,
         mult_ch=mult_ch,
         mult_h=mult_h,
         event_number=event_number,
-        fname=config.fname_real_tracks.format(method, out_file_postfix))
+        fname=config.fname_real_tracks.format(method))
 
     save_to_files.save_track_candidates(
         selected_trackIds=selected_trackIds,
@@ -192,7 +192,7 @@ def calc_characteristics(track_candidates,
         mult_ch=mult_ch,
         mult_h=mult_h,
         event_number=event_number,
-        fname=config.fname_track_candidates.format(method, out_file_postfix))
+        fname=config.fname_track_candidates.format(method))
 
     # Save table of reco and not reco track_candidates
     # save_recognised_logo(reco_track_list, real_track_list)

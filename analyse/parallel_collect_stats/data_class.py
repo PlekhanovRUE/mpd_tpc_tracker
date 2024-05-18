@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional
@@ -7,6 +8,7 @@ from pandas import Series, DataFrame
 import pandas as pd
 
 import save_to_files
+from analyse.parallel_collect_stats.utils import load_csv
 from post_processing.cleaning.neural_net import create_model
 from usage_example_several_runs import find_file
 
@@ -28,9 +30,9 @@ class MlModelData:
             self.event_df = self.event_df.iloc[:, 2:-2]
         else:
             ml_params_fname = find_file(f"track_candidates_params_event_{event_num}.csv", dirs)
-            self.event_df = pd.read_csv(ml_params_fname)
+            self.event_df = load_csv(ml_params_fname)
             self.indices = self.event_df['prototrackIndex']
-            self.event_num_ser = pd.Series([event_num] * self.event_df.count())
+            self.event_num_ser = pd.Series([event_num] * len(self.event_df))
             self.event_df = self.event_df.iloc[:, 1:-2]
 
     def __post_init__(self):
@@ -38,7 +40,7 @@ class MlModelData:
         self.__is_one_params_file__ = bool(self.params_file_path)
 
         if self.__is_one_params_file__:
-            self.base_df: DataFrame = pd.read_csv(self.params_file_path)
+            self.base_df: DataFrame = load_csv(self.params_file_path)
 
     def __load_model__(self):
         model = create_model()
@@ -52,6 +54,9 @@ class BaseTrackParams:
     selected_trackIds: list
     method: str
     trackId_to_track_params: list
+    mult_h: int
+    mult_ch: int
+    event_number: int
 
 
 @dataclass
@@ -61,8 +66,6 @@ class RealTrackParams(BaseTrackParams):
 
 @dataclass
 class CandTrackParams(BaseTrackParams):
-    fake_track_list: list
-    duplicate_track_list: list
     trackCandParamsList: list
 
 
@@ -78,17 +81,21 @@ class OneEventRealTrackParams:
                 selected_trackIds=real_track_characteristics.selected_trackIds,
                 real_tracks_is_reco=real_track_characteristics.reco_track_list,
                 fname=real_track_characteristics.method,
-                trackId_to_track_params=real_track_characteristics.trackId_to_track_params
+                trackId_to_track_params=real_track_characteristics.trackId_to_track_params,
+                mult_ch=real_track_characteristics.mult_ch,
+                mult_h=real_track_characteristics.mult_h,
+                event_number=real_track_characteristics.event_number
             )
         # Save cand track characteristics
         for cand_track_characteristics in self.all_method_for_cand_tracks:
             save_to_files.save_track_candidates(
                 selected_trackIds=cand_track_characteristics.selected_trackIds,
-                fake_track_list=cand_track_characteristics.fake_track_list,
-                duplicate_track_list=cand_track_characteristics.duplicate_track_list,
                 trackCandParamsList=cand_track_characteristics.trackCandParamsList,
                 trackId_to_track_params=cand_track_characteristics.trackId_to_track_params,
-                fname=cand_track_characteristics.method
+                fname=cand_track_characteristics.method,
+                mult_h=cand_track_characteristics.mult_h,
+                mult_ch=cand_track_characteristics.mult_ch,
+                event_number=cand_track_characteristics.event_number
             )
 
 
