@@ -34,6 +34,25 @@ def find_file(f_name, dir_list):
     return full_f_name
 
 
+def load_csv(ml_params_fname):
+    # Open input params file
+    with open(ml_params_fname) as f:
+        content = f.read()
+
+    # Change separator
+    content = content.replace(", ", ",")
+
+    # Save temp.csv file with correct sep
+    with open("temp.csv", "w") as f:
+        f.write(content)
+
+    df = pd.read_csv("temp.csv")
+
+    # Delete temp file
+    os.remove("temp.csv")
+
+    return df
+
 def post_process():
     methods = [
       "RAW",
@@ -134,10 +153,10 @@ def post_process():
         trackId_to_hits_dict = get_trackId_to_hits_dict(
                 space_points_fname, trackId_to_track_params)
 
-
-        df = pd.read_csv(track_candidates_params)
+        nn_data = load_csv(track_candidates_params)
+        df = nn_data[nn_data['#format: eventNumber'] == iEvent].reset_index(drop=True)
         indices = df['prototrackIndex']
-#       df = df.iloc[:, 1:-2]
+        #       df = df.iloc[:, 1:-2]
         df = df.iloc[:, 2:-2]
 
         # Use methods
