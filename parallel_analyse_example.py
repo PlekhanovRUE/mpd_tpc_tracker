@@ -4,7 +4,8 @@ from analyse.parallel_collect_stats.start_parallel_workers import event_pool_ana
 
 if __name__ == "__main__":
     # Input data
-    data_for_ml = MlModelData(checkpoint_file_path="data/data_for_ml/checkpoint_dir/cp.ckpt")
+    data_for_ml = MlModelData(weigh_file_path="post_processing/cleaning/pytorch_neural_net/weight_best.pth",
+                              params_file_path="data/new_format_tracks_data/result.csv")
     dirs = ["data/new_format_tracks_data"]
 
     # Prepare result stats files

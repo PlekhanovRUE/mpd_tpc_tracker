@@ -1,7 +1,7 @@
 from analyse.parallel_collect_stats.utils import load_csv
 from post_processing import (direct_merging, graph_merging,
                              graph_cleaning, coverage_cleaning,
-                             direct_cleaning, create_model,
+                             direct_cleaning,
                              cluster_and_neural_net)
 import config
 import save_to_files

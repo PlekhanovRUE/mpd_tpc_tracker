@@ -37,9 +37,7 @@ def nns_analyse(event_number: int,
 
     return nn_method(model=ml_data.model,
                      track_list=event_data.tracks,
-                     tracks_for_nn=ml_data.event_df,
-                     event_number=ml_data.event_num_ser,
-                     indices=ml_data.indices)
+                     track_params=ml_data.event_df)
 
 
 def calculate_one_event_stats(event_number: int, dirs: list[str], ml_data: MlModelData) -> OneEventRealTrackParams:

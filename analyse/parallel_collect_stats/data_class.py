@@ -1,21 +1,19 @@
-import os
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional
 
-from tf_keras import Sequential
+import torch
 from pandas import Series, DataFrame
-import pandas as pd
 
 import save_to_files
 from analyse.parallel_collect_stats.utils import load_csv
-from post_processing.cleaning.neural_net import create_model
+from post_processing import FCNeuralNet
 from usage_example_several_runs import find_file
 
 
 @dataclass
 class MlModelData:
-    checkpoint_file_path: str
+    weigh_file_path: str
 
     params_file_path: Optional[str] = None
     indices: Series = field(init=False)
@@ -25,27 +23,23 @@ class MlModelData:
     def calc_event_filed(self, event_num: int, dirs):
         if self.__is_one_params_file__:
             self.event_df = self.base_df[self.base_df['#format:eventNumber'] == event_num]
-            self.indices = self.event_df['prototrackIndex']
-            self.event_num_ser = self.event_df['#format:eventNumber']
-            self.event_df = self.event_df.iloc[:, 2:-2]
         else:
             ml_params_fname = find_file(f"track_candidates_params_event_{event_num}.csv", dirs)
             self.event_df = load_csv(ml_params_fname)
-            self.indices = self.event_df['prototrackIndex']
-            self.event_num_ser = pd.Series([event_num] * len(self.event_df))
-            self.event_df = self.event_df.iloc[:, 1:-2]
+
+        self.event_df = self.event_df.iloc[:, 2:-2]
 
     def __post_init__(self):
-        self.model: Sequential = self.__load_model__()
+        self.model = self.__load_model__()
         self.__is_one_params_file__ = bool(self.params_file_path)
 
         if self.__is_one_params_file__:
             self.base_df: DataFrame = load_csv(self.params_file_path)
 
     def __load_model__(self):
-        model = create_model()
-        checkpoint_path = self.checkpoint_file_path
-        model.load_weights(checkpoint_path)
+        model = FCNeuralNet()
+        model.load_state_dict(torch.load(self.weigh_file_path, map_location=torch.device("cpu")))
+        model.eval()
         return model
 
 
