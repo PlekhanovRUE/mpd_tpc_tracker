@@ -1,6 +1,8 @@
+import torch
+
 from post_processing import (direct_merging, graph_merging,
                              graph_cleaning, coverage_cleaning,
-                             direct_cleaning, create_model,
+                             direct_cleaning, FCNeuralNet,
                              cluster_and_neural_net)
 import config
 import save_to_files
@@ -40,7 +42,7 @@ def load_csv(ml_params_fname):
         content = f.read()
 
     # Change separator
-    content = content.replace(", ", ",")
+    content = content.replace(" ", "")
 
     # Save temp.csv file with correct sep
     with open("temp.csv", "w") as f:
@@ -111,8 +113,10 @@ def post_process():
         save_to_files.write_track_candidates_header(fname)
 
     # Upload data and settings for NNS (Can be commented out if you don't use NNS)
-    model = create_model()
-    model.load_weights('data/data_for_ml/checkpoint_dir/cp.ckpt')
+    model = FCNeuralNet()
+    model.load_state_dict(torch.load("post_processing/cleaning/pytorch_neural_net/weight_best.pth",
+                                     map_location=torch.device("cpu")))
+    model.eval()
 
     for iEvent in range(start_event_i, end_event_i + 1):
         print(f"Event #{iEvent}")
@@ -154,17 +158,14 @@ def post_process():
                 space_points_fname, trackId_to_track_params)
 
         nn_data = load_csv(track_candidates_params)
-        df = nn_data[nn_data['#format: eventNumber'] == iEvent].reset_index(drop=True)
-        indices = df['prototrackIndex']
-        #       df = df.iloc[:, 1:-2]
+        df = nn_data[nn_data['#format:eventNumber'] == iEvent].reset_index(drop=True)
         df = df.iloc[:, 2:-2]
 
         # Use methods
         if df.size == 0:
             result["NNS"] = [[]]
         else:
-            result["NNS"] = cluster_and_neural_net(model, deepcopy(result.get("RAW")), df,
-                                                   pd.Series([iEvent] * len(df)), indices, hits=3)
+            result["NNS"] = cluster_and_neural_net(deepcopy(result.get("RAW")), df, model)
 
         result["PWS"] = direct_cleaning(deepcopy(result.get("RAW")))
         result["PWM"] = direct_merging(deepcopy(result.get("RAW")))
