@@ -34,7 +34,6 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs):
 
 def cluster_and_neural_net(track_list: list, track_params: DataFrame, model: FCNeuralNet, shared_hits=3):
     cluster_list = create_clusters(track_list, min_n_shared_hits=shared_hits)
-    print(len(cluster_list))
     result_track_list = []
     with torch.no_grad():
         for cluster in cluster_list:
