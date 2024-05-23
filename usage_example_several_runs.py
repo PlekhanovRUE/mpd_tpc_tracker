@@ -19,21 +19,12 @@ import pandas as pd
 import sys
 import os
 
-#if os.path.exists(config.fname_real_tracks):
-#  os.remove(config.fname_real_tracks)
-#  save_to_files.write_real_tracks_header(config.fname_real_tracks)
 
-
-def find_file(f_name, dir_list):
-    full_f_name = ""
-    for dir in dir_list:
-        full_f_name_local = os.path.join(dir, f_name)
-        if os.path.exists(full_f_name_local):
-            full_f_name = full_f_name_local
-            break
-    if full_f_name == "":
-        print(f"Warning: find_file(): can not find {f_name}")
-    return full_f_name
+def check_file(fname):
+    if not os.path.exists(fname):
+        print(f"Warning: can not find {fname}!")
+        return False
+    return True
 
 
 def load_csv(ml_params_fname):
@@ -66,30 +57,7 @@ def post_process():
       "HCF"
     ]
 
-
-#   dirs = ['data/tracks_data']
-    dirs = [
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/0_1000',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/1000_1800',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/1801_2989',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/2991_4185',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/4186_4364',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/4367_4999',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/5000_5202',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/5204_6203',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/6204_7203',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/7204_8103',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/8104_8184',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/8185_9184',
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/9185_9999'
-    ]
-#   track_candidates_params_fname = "data/data_for_ml/track_candidates_params.csv"
-    dirs_param = [
-            '/media/space/pbelecky/hep/mpdroot_bak/dump_pt_eta_2_10000/track_candidates_params'
-    ]
-    dirs_mc = [
-            '/home/belecky/work/mpdroot/bin_dump_pdg/macros/common'
-    ]
+    input_dir = 'data/tracks_data'
 
     d = int((config.end_event - config.start_event + 1) / config.n_parts)
 
@@ -121,28 +89,31 @@ def post_process():
     for iEvent in range(start_event_i, end_event_i + 1):
         print(f"Event #{iEvent}")
 
-        prototracks_fname = find_file(f"event_{iEvent}_prototracks.txt", dirs)
-        space_points_fname = find_file(f"event_{iEvent}_space_points.txt", dirs)
-        mc_track_params_fname = find_file(f"event_{iEvent}_mc_track_params.txt", dirs_mc)
-        track_candidates_params = find_file(f"event_{iEvent}_track_candidates_params.txt", dirs_param)
+        prototracks_fname = f"{input_dir}{os.sep}event_{iEvent}_prototracks.txt"
+        track_cand_params_fname = f"{input_dir}{os.sep}event_{iEvent}_" \
+                "track_candidates_params.txt"
+        sp_points_fname = f"{input_dir}{os.sep}event_{iEvent}_space_points.txt"
+        mc_track_params_fname = f"{input_dir}{os.sep}event_{iEvent}_" \
+                "mc_track_params.txt"
 
-        if (prototracks_fname       == "") or \
-           (space_points_fname      == "") or \
-           (mc_track_params_fname   == "") or \
-           (track_candidates_params == ""):
+        inp_files_exists = check_file(prototracks_fname) and \
+                           check_file(track_cand_params_fname) and \
+                           check_file(sp_points_fname) and \
+                           check_file(mc_track_params_fname)
+        if not inp_files_exists:
             continue
 
         # Upload data
         data_from_get_tracks_data = get_tracks_data(prototracks_fname,
-                                                    space_points_fname)
+                                                    sp_points_fname)
 
-        result = {"RAW": get_tracks_data(prototracks_fname, space_points_fname)}
+        result = {"RAW": get_tracks_data(prototracks_fname, sp_points_fname)}
 
         # Strange Check prototracks file not empty
 #       if not result.get("RAW"):
 #           print(f"WARNING: post_process(): iEvent: {iEvent}: no input prototracks")
 #           continue
-        hit_list = get_hits(space_points_fname)
+        hit_list = get_hits(sp_points_fname)
         trackId_to_track_params = get_trackId_to_track_params(
                 mc_track_params_fname)
 
@@ -155,9 +126,9 @@ def post_process():
         print("multiplicity h: {}".format(mult_h))
 
         trackId_to_hits_dict = get_trackId_to_hits_dict(
-                space_points_fname, trackId_to_track_params)
+                sp_points_fname, trackId_to_track_params)
 
-        nn_data = load_csv(track_candidates_params)
+        nn_data = load_csv(track_cand_params_fname)
         df = nn_data[nn_data['#format:eventNumber'] == iEvent].reset_index(drop=True)
         df = df.iloc[:, 2:-2]
 
