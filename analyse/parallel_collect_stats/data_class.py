@@ -5,10 +5,12 @@ from typing import Optional
 import torch
 from pandas import Series, DataFrame
 
+import os
+
 import save_to_files
 from analyse.parallel_collect_stats.utils import load_csv
 from post_processing import FCNeuralNet
-from usage_example_several_runs import find_file
+#from usage_example_several_runs import find_file
 
 
 @dataclass
@@ -20,11 +22,12 @@ class MlModelData:
     event_num_ser: Series = field(init=False)
     event_df: DataFrame = field(init=False)
 
-    def calc_event_filed(self, event_num: int, dirs):
+    def calc_event_filed(self, event_num: int, input_dir):
         if self.__is_one_params_file__:
             self.event_df = self.base_df[self.base_df['#format:eventNumber'] == event_num]
         else:
-            ml_params_fname = find_file(f"track_candidates_params_event_{event_num}.csv", dirs)
+            ml_params_fname = f"{input_dir}{os.sep}event_{event_num}_" \
+                    "track_candidates_params.txt"
             self.event_df = load_csv(ml_params_fname)
 
         self.event_df = self.event_df.iloc[:, 2:-2]

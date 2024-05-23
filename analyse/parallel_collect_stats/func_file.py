@@ -7,19 +7,21 @@ from analyse.parallel_collect_stats.validation_for_parallel import calc_parallel
 from data_processing.parse_data import get_tracks_data, get_hits, get_trackId_to_track_params
 from analyse.parallel_collect_stats.static_data import analyse_methods
 from save_to_files import write_real_tracks_header, write_track_candidates_header
-from usage_example_several_runs import find_file
 
 
-def parse_event_data(event_number: int, dirs: list[str]) -> InputEventData:
-    proto_tracks_fname = find_file(f"event_{event_number}_prototracks.txt", dirs)
-    space_points_fname = find_file(f"event_{event_number}_space_points.txt", dirs)
-    mc_track_params_fname = find_file(f"event_{event_number}_mc_track_params.txt", dirs)
+def parse_event_data(event_number: int, input_dir: str) -> InputEventData:
+    proto_tracks_fname = \
+            f"{input_dir}{os.sep}event_{event_number}_prototracks.txt"
+    sp_points_fname = \
+            f"{input_dir}{os.sep}event_{event_number}_space_points.txt"
+    mc_track_params_fname = \
+            f"{input_dir}{os.sep}event_{event_number}_mc_track_params.txt"
 
     input_event_data = InputEventData(
-        hits_list=get_hits(space_points_fname),
+        hits_list=get_hits(sp_points_fname),
         track_id_to_track_params=get_trackId_to_track_params(mc_track_params_fname)
     )
-    input_event_data.tracks = get_tracks_data(proto_tracks_fname, space_points_fname)
+    input_event_data.tracks = get_tracks_data(proto_tracks_fname, sp_points_fname)
 
     return input_event_data
 
@@ -28,8 +30,8 @@ def nns_analyse(event_number: int,
                 ml_data: MlModelData,
                 event_data: InputEventData,
                 nn_method,
-                dirs: list[str]) -> list[TrackData]:
-    ml_data.calc_event_filed(event_number, dirs)
+                input_dir: str) -> list[TrackData]:
+    ml_data.calc_event_filed(event_number, input_dir)
 
     # Skip empty events
     if ml_data.event_df.size == 0:
@@ -40,14 +42,14 @@ def nns_analyse(event_number: int,
                      track_params=ml_data.event_df)
 
 
-def calculate_one_event_stats(event_number: int, dirs: list[str], ml_data: MlModelData) -> OneEventRealTrackParams:
-    event_data = parse_event_data(event_number, dirs)
+def calculate_one_event_stats(event_number: int, input_dir: str, ml_data: MlModelData) -> OneEventRealTrackParams:
+    event_data = parse_event_data(event_number, input_dir)
     event_characteristics = OneEventRealTrackParams()
 
     for method_name, method in analyse_methods.items():
         match method_name:
             case "NNS":
-                tracks = nns_analyse(event_number, ml_data, event_data, method, dirs)
+                tracks = nns_analyse(event_number, ml_data, event_data, method, input_dir)
             case "RAW":
                 tracks = event_data.tracks
             case _:
