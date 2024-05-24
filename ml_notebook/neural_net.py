@@ -96,7 +96,8 @@ def neural_net(df_path: str):
      если надо поправить, скажи
      возможно придется добавлять в сравнение вне цикла
     '''
-    df = pd.read_csv(df_path, sep=", ", engine='python')
+#   df = pd.read_csv(df_path, sep=", ", engine='python')
+    df = pd.read_csv(df_path, sep=",", engine='python')
     df['good'] = df['duplicate'] == df['fake']
     df['good'].astype('int8')
     indexes = df['prototrackIndex']
