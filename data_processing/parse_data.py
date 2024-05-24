@@ -24,7 +24,7 @@ def get_tracks_data(track_path, hit_path, track_consist_of_hit_id=False) -> list
 
             temp = []
             tracks.append([])
-            mas = i.split(", ")
+            mas = i.split(",")
             amount_characteristics = 0
             j = 0
             while j < len(mas) or temp:
@@ -50,7 +50,7 @@ def get_trackId_to_hits_dict(path_hits, trackId_to_track_params=None) -> dict:
             if 'format' in i:
                 continue
 
-            hit = list(map(float, i.split(", ")))
+            hit = list(map(float, i.split(",")))
             hits[int(hit[3])].append(hit[:3])
 
     track_id_list = list(hits.keys())
@@ -71,7 +71,7 @@ def get_hits(path_hits) -> list:
             if 'format' in i:
                 continue
 
-            hit = list(map(float, i.split(", ")))
+            hit = list(map(float, i.split(",")))
             hits.append(hit)
     return hits
 

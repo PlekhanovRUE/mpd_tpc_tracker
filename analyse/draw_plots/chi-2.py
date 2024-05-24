@@ -21,7 +21,7 @@ def get_tracks_data(track_path, hit_path) -> list:
 
             temp = []
             tracks.append([])
-            mas = i.split(", ")
+            mas = i.split(",")
             amount_characteristics = 0
             j = 0
             while j < len(mas) or temp:
