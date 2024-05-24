@@ -50,8 +50,10 @@ def save_track_candidates(
         event_number,
         fname):
 
-    print("save_track_candidates(): len(trackCandParamsList): {}".format(
-            len(trackCandParamsList)))
+    debug = False
+    if debug:
+        print("save_track_candidates(): len(trackCandParamsList): {}".format(
+                len(trackCandParamsList)))
     with open(fname, 'a') as f:
         ipnb = -1
         for params in trackCandParamsList:
@@ -67,7 +69,7 @@ def save_track_candidates(
             pt    = -1
             eta   = -123
 
-            if True:
+            if debug:
                 ipnb += 1
                 print("save_track_candidates(): #{ipnb}; "
                       "selected: {selected}; "

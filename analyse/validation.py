@@ -143,9 +143,6 @@ def calc_characteristics(track_candidates,
     for i, val in enumerate(fake_track_list):
         print(f"Fakes: #{i}; val: {val}, method: {method}")
 
-    print("calc_characteristics(): len(trackCandParamsList): {}".format(
-            len(trackCandParamsList)))
-
     for i, par in enumerate(trackCandParamsList):
       sel     = par.selected
       isDup   = par.isDup

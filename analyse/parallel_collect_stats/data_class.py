@@ -10,7 +10,6 @@ import os
 import save_to_files
 from analyse.parallel_collect_stats.utils import load_csv
 from post_processing import FCNeuralNet
-#from usage_example_several_runs import find_file
 
 
 @dataclass

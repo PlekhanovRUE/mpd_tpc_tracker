@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # Input data
     data_for_ml = MlModelData(weigh_file_path="post_processing/cleaning/pytorch_neural_net/weight_best.pth")
 #                             params_file_path="data/new_format_tracks_data/result.csv")
-    input_dir = "/media/space/pbelecky/hep/mpdroot_bak/dump_20_30/dump_without_postprocess/fast_30"
+    input_dir = "data/tracks_data"
 
     # Prepare result stats files
     rewrite_stats_files()
