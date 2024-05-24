@@ -162,6 +162,8 @@ void plotgraphs(
     if (graphArgument == pt) {
       argumentIdx = 3;
       yMax = 1.02;
+
+//    yMin = 0.35; // for compare chi2 20 30
     } else if (graphArgument == eta) {
       argumentIdx = 4;
       yMin = 0.94;
@@ -294,6 +296,11 @@ void plotgraphs(
     xLabel = "Truth multiplicity";
 
     pngPostfix = "multiplicity";
+    if (multType == hits) {
+      pngPostfix += "_hits";
+    } else if (multType == charged) {
+      pngPostfix += "_ch";
+    }
     rootNamePostfix = "multiplicity";
   } else {
     assert(0 && "Wrong graphArgument!");
