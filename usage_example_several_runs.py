@@ -18,6 +18,7 @@ from copy import deepcopy
 import pandas as pd
 import sys
 import os
+import uuid
 
 
 def check_file(fname):
@@ -27,22 +28,23 @@ def check_file(fname):
     return True
 
 
-def load_csv(ml_params_fname):
+def load_csv(fname):
     # Open input params file
-    with open(ml_params_fname) as f:
+    with open(fname) as f:
         content = f.read()
 
     # Change separator
     content = content.replace(" ", "")
 
-    # Save temp.csv file with correct sep
-    with open("temp.csv", "w") as f:
+    # Save uniq_fname file with correct sep
+    uniq_fname = "/tmp/" + str(uuid.uuid4().hex)
+    with open(uniq_fname, "w") as f:
         f.write(content)
 
-    df = pd.read_csv("temp.csv")
+    df = pd.read_csv(uniq_fname)
 
     # Delete temp file
-    os.remove("temp.csv")
+    os.remove(uniq_fname)
 
     return df
 
