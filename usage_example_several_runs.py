@@ -28,6 +28,18 @@ def check_file(fname):
     return True
 
 
+def check_params():
+    i_thread = int(sys.argv[1])
+    n_threads = config.n_parts
+    if (i_thread >= n_threads):
+        print(f"Error: bad parameters: " \
+              f"total number of threads: {n_threads}\n" \
+              f"i_thread actual: {i_thread}\n" \
+              f"i_thread expected: [0, {n_threads - 1}]")
+        return False
+    return True
+
+
 def load_csv(fname):
     # Open input params file
     with open(fname) as f:
@@ -180,6 +192,8 @@ def post_process():
 
 # Start visualizing
 if __name__ == '__main__':
+    if not check_params():
+      sys.exit()
     post_process()
     if (config.visualyse):
       app = QApplication(sys.argv)
