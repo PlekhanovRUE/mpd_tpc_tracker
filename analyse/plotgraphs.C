@@ -150,8 +150,9 @@ enum MultType {
 };
 
 void plotgraphs(
-    std::string outFName,
-    std::string postfix,
+    std::string inputDir,
+    std::string outputDir,
+    std::string pngPostfix,
     GraphType graphType,
     GraphArgument graphArgument,
     MultType multType = charged,
@@ -163,7 +164,7 @@ void plotgraphs(
 
   Int_t valueIdx;
 
-  std::string fname_pre;
+  std::string fname_pre = inputDir + "/";
   std::string pngPrefix;
   std::string rootNamePrefix;
 
@@ -175,7 +176,7 @@ void plotgraphs(
   if (graphType == efficiency) {
     valueIdx = 6;
 
-    fname_pre = "real_tracks_";
+    fname_pre += "real_tracks_";
     pngPrefix = "efficiency";
     rootNamePrefix = "Efficiency";
     yLabel = "Efficiency";
@@ -214,7 +215,7 @@ void plotgraphs(
   else if (graphType == duplicateRate){
     valueIdx = 3;
 
-    fname_pre = "track_candidates_";
+    fname_pre += "track_candidates_";
     pngPrefix = "dup";
     rootNamePrefix = "DuplicateRate";
     yLabel = "Duplicate rate";
@@ -261,7 +262,7 @@ void plotgraphs(
   } else if (graphType == fakeRate) {
     valueIdx = 2;
 
-    fname_pre = "track_candidates_";
+    fname_pre += "track_candidates_";
     pngPrefix = "fakeRate";
     rootNamePrefix = "FakeRate";
     yLabel = "Fake rate";
@@ -302,7 +303,6 @@ void plotgraphs(
   Double_t maxArgument;
   std::string xLabel;
 
-  std::string pngPostfix;
   std::string rootNamePostfix;
 
   if (graphArgument == pt) {
@@ -311,7 +311,7 @@ void plotgraphs(
 
     xLabel = "Truth pT [GeV/c]";
 
-    pngPostfix = "pt";
+    pngPostfix = "pt" + pngPostfix;
     rootNamePostfix = "pt";
 
   } else if (graphArgument == eta) {
@@ -319,7 +319,7 @@ void plotgraphs(
     maxArgument =  1.5;
     xLabel = "Truth #eta";
 
-    pngPostfix = "eta";
+    pngPostfix = "eta" + pngPostfix;
     rootNamePostfix = "eta";
 
   } else if (graphArgument == multiplicity) {
@@ -327,25 +327,27 @@ void plotgraphs(
     maxArgument = 900;
     xLabel = "Truth multiplicity";
 
-    pngPostfix = "multiplicity";
+    std::string postfix = "multiplicity";
     if (multType == hits) {
-      pngPostfix += "_hits";
+      postfix += "_hits";
     } else if (multType == charged) {
-      pngPostfix += "_ch";
+      postfix += "_ch";
     }
+    pngPostfix = postfix + pngPostfix;
     rootNamePostfix = "multiplicity";
   } else {
     assert(0 && "Wrong graphArgument!");
   }
 
-  std::string pngFName = pngPrefix + "_" + pngPostfix + postfix + ".png";
+  std::string pngFName = outputDir + "/"+ pngPrefix + "_" + pngPostfix + ".png";
 
   std::cout << "argIdx : " << argIdx << std::endl;
   std::cout << "valueIdx : " << valueIdx << std::endl;
 
   Int_t nBins = 31;
 
-  auto *fOut = new TFile(outFName.c_str(), "update");
+  std::string rootFname = outputDir + "/graphs.root";
+  auto *fOut = new TFile(rootFname.c_str(), "update");
 
   auto *canv = new TCanvas("Efficiency", "", 2048, 1496);
 
