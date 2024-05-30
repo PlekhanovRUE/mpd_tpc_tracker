@@ -323,7 +323,7 @@ void plotgraphs(
     rootNamePostfix = "eta";
 
   } else if (graphArgument == multiplicity) {
-    minArgument = 100;
+    minArgument = 0;
     maxArgument = 900;
     xLabel = "Truth multiplicity";
 
