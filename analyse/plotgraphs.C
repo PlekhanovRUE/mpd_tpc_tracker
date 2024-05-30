@@ -80,7 +80,9 @@ void setYMinMax(TEfficiency *eff, Double_t min, Double_t max) {
 }
 
 void fill_teff_from_file(
-    TEfficiency *eff, Int_t argumentIdx, Int_t valueIdx, std::string fname) {
+    TEfficiency *eff, Int_t argIdx, Int_t valueIdx, std::string fname,
+    Bool_t selectorEnabled, Int_t ptArgIdx, Int_t etaArgIdx,
+    Double_t selPtMin = 0, Double_t selAbsEtaMax = 0) {
 
   std::ifstream fIn(fname);
   if (!fIn.good()) {
@@ -100,27 +102,45 @@ void fill_teff_from_file(
     std::istringstream iss(line);
     int i = -1;
     Double_t argument;
+    Double_t absEta;
+    Double_t pt;
+
     Int_t valueInt;
     Bool_t value;
     Bool_t findArgument = false;
     Bool_t findValue = false;
+    Bool_t findPt = false;
+    Bool_t findEta = false;
+
     while (iss.good()) {
       i++;
       std::string substr;
       getline(iss, substr, ',');
 
-      if (i == argumentIdx) {
+      if (i == argIdx) {
         argument = std::stod(substr);
         findArgument = true;
       } else if (i == valueIdx) {
         valueInt = std::stoi(substr);
         value = (valueInt == 1);
       }
+      if (i == ptArgIdx) {
+        pt = std::stod(substr);
+        findPt = true;
+      } else if (i == etaArgIdx) {
+        absEta = fabs(std::stod(substr));
+        findEta = true;
+      }
     }
     assert(findArgument);
     assert(findValue);
+    assert(findPt);
+    assert(findEta);
 
-    eff->Fill(value, argument);
+    if (!selectorEnabled ||
+        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax )) {
+      eff->Fill(value, argument);
+    }
   }
 }
 
@@ -137,15 +157,17 @@ void plotgraphs(
     MultType multType = charged,
     Bool_t ifRAW = false) {
 
-  Int_t argumentIdx;
+  Int_t argIdx;
+  Int_t ptArgIdx;
+  Int_t etaArgIdx;
+
   Int_t valueIdx;
 
   std::string fname_pre;
-  std::string yLabel;
-
   std::string pngPrefix;
-
   std::string rootNamePrefix;
+
+  std::string yLabel;
 
   Double_t yMin = -1;
   Double_t yMax = -1;
@@ -160,20 +182,23 @@ void plotgraphs(
 
     yMax = 1;
 
+    ptArgIdx = 3;
+    etaArgIdx = 4;
+
     if (graphArgument == pt) {
-      argumentIdx = 3;
+      argIdx = ptArgIdx;
       yMax = 1.02;
 
 //    yMin = 0.35; // for compare chi2 20 30
     } else if (graphArgument == eta) {
-      argumentIdx = 4;
+      argIdx = etaArgIdx;
       yMin = 0.94;
       yMax = 1;
     } else if (graphArgument == multiplicity) {
       if (multType == hits) {
-        argumentIdx = 7;
+        argIdx = 7;
       } else if (multType == charged) {
-        argumentIdx = 5;
+        argIdx = 5;
       } else {
         std::cout << "Error: wrong multType!" << std::endl;
         return;
@@ -196,15 +221,18 @@ void plotgraphs(
 
     yMin = 0;
 
+    ptArgIdx = 4;
+    etaArgIdx = 5;
+
     if (graphArgument == pt) {
-      argumentIdx = 4;
+      argIdx = ptArgIdx;
       yMax = 0.3;
       if (ifRAW) {
         yMin = 0;
         yMax = 1;
       }
     } else if (graphArgument == eta) {
-      argumentIdx = 5;
+      argIdx = etaArgIdx;
       yMax = 0.52;
       if (ifRAW) {
         yMin = 0;
@@ -212,9 +240,9 @@ void plotgraphs(
       }
     } else if (graphArgument == multiplicity) {
       if (multType == hits) {
-        argumentIdx = 9;
+        argIdx = 9;
       } else if (multType == charged) {
-        argumentIdx = 6;
+        argIdx = 6;
       } else {
         std::cout << "Error: wrong multType!" << std::endl;
         return;
@@ -243,6 +271,9 @@ void plotgraphs(
 
 //  yMax = 1;
 
+    ptArgIdx = 4;
+    etaArgIdx = 5;
+
     std::string error =
         "Error: Fake rate plot can only be built VS multiplicity";
 
@@ -254,9 +285,9 @@ void plotgraphs(
       return;
     } else if (graphArgument == multiplicity) {
       if (multType == hits) {
-        argumentIdx = 9;
+        argIdx = 9;
       } else if (multType == charged) {
-        argumentIdx = 6;
+        argIdx = 6;
       } else {
         std::cout << "Error: wrong multType!" << std::endl;
         return;
@@ -309,7 +340,7 @@ void plotgraphs(
 
   std::string pngFName = pngPrefix + "_" + pngPostfix + postfix + ".png";
 
-  std::cout << "argumentIdx : " << argumentIdx << std::endl;
+  std::cout << "argIdx : " << argIdx << std::endl;
   std::cout << "valueIdx : " << valueIdx << std::endl;
 
   Int_t nBins = 31;
@@ -339,13 +370,25 @@ void plotgraphs(
   TEfficiency *teffRAW = createTEff("RAW", "RAW;"+ xLabel + ";" + yLabel,
       nBins, minArgument, maxArgument, lineWidth, kBlack, kFullSquare);
 
-  fill_teff_from_file(teffPGM, argumentIdx, valueIdx, fname_pre + PGM + ".txt");
-  fill_teff_from_file(teffHCF, argumentIdx, valueIdx, fname_pre + HCF + ".txt");
-  fill_teff_from_file(teffNNS, argumentIdx, valueIdx, fname_pre + NNS + ".txt");
-  fill_teff_from_file(teffPGS, argumentIdx, valueIdx, fname_pre + PGS + ".txt");
-  fill_teff_from_file(teffPWM, argumentIdx, valueIdx, fname_pre + PWM + ".txt");
-  fill_teff_from_file(teffPWS, argumentIdx, valueIdx, fname_pre + PWS + ".txt");
-  fill_teff_from_file(teffRAW, argumentIdx, valueIdx, fname_pre + RAW + ".txt");
+  // Selector options
+  Bool_t selectorEnabled = false;
+  Double_t selPtMin = 0.1;
+  Double_t selAbsEtaMax = 1.5;
+
+  fill_teff_from_file(teffPGM, argIdx, valueIdx, fname_pre + PGM + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffHCF, argIdx, valueIdx, fname_pre + HCF + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffNNS, argIdx, valueIdx, fname_pre + NNS + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffPGS, argIdx, valueIdx, fname_pre + PGS + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffPWM, argIdx, valueIdx, fname_pre + PWM + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffPWS, argIdx, valueIdx, fname_pre + PWS + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffRAW, argIdx, valueIdx, fname_pre + RAW + ".txt",
+      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
 
   teffPGM->Draw("");
   teffNNS->Draw("same");
