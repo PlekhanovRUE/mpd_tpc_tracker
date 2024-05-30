@@ -7,23 +7,23 @@
 
 // Usage:
 //     Plot efficiency VS pt, eta, multiplicity
-// root plotgraphs.C("out.root", eff, pt)
-// root plotgraphs.C("out.root", eff, eta)
-// root plotgraphs.C("out.root", eff, mult)
-// root plotgraphs.C("out.root", eff, mult, hits)
-// root plotgraphs.C("out.root", eff, mult, charged)
+// root plotgraphs.C("out.root", "", eff, pt)
+// root plotgraphs.C("out.root", "", eff, eta)
+// root plotgraphs.C("out.root", "", eff, mult)
+// root plotgraphs.C("out.root", "", eff, mult, hits)
+// root plotgraphs.C("out.root", "", eff, mult, charged)
 
 //     Plot duplicate rate VS pt, eta, multiplicity
-// root plotgraphs.C("out.root", duplicates, pt)
-// root plotgraphs.C("out.root", duplicates, eta)
-// root plotgraphs.C("out.root", duplicates, mult)
-// root plotgraphs.C("out.root", duplicates, mult, hits)
-// root plotgraphs.C("out.root", duplicates, mult, charged)
+// root plotgraphs.C("out.root", "", duplicates, pt)
+// root plotgraphs.C("out.root", "", duplicates, eta)
+// root plotgraphs.C("out.root", "", duplicates, mult)
+// root plotgraphs.C("out.root", "", duplicates, mult, hits)
+// root plotgraphs.C("out.root", "", duplicates, mult, charged)
 
 //     Plot fake rate VS multiplicity
-// root plotgraphs.C("out.root", fakes, mult)
-// root plotgraphs.C("out.root", fakes, mult, hits)
-// root plotgraphs.C("out.root", fakes, mult, charged)
+// root plotgraphs.C("out.root", "", fakes, mult)
+// root plotgraphs.C("out.root", "", fakes, mult, hits)
+// root plotgraphs.C("out.root", "", fakes, mult, charged)
 
 enum GraphType {
   efficiency,
@@ -131,6 +131,7 @@ enum MultType {
 
 void plotgraphs(
     std::string outFName,
+    std::string postfix,
     GraphType graphType,
     GraphArgument graphArgument,
     MultType multType = charged,
@@ -306,7 +307,7 @@ void plotgraphs(
     assert(0 && "Wrong graphArgument!");
   }
 
-  std::string pngFName = pngPrefix + "_" + pngPostfix + ".png";
+  std::string pngFName = pngPrefix + "_" + pngPostfix + postfix + ".png";
 
   std::cout << "argumentIdx : " << argumentIdx << std::endl;
   std::cout << "valueIdx : " << valueIdx << std::endl;
