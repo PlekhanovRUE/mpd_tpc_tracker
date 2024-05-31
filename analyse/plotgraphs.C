@@ -137,8 +137,13 @@ void fill_teff_from_file(
     assert(findPt);
     assert(findEta);
 
+    // Corresponding trackId does not exist, i.e. for fake track-candidates
+    Bool_t unknPt  = (pt < 0.)      ? true : false;
+    Bool_t unknEta = (absEta > 100) ? true : false;
+
     if (!selectorEnabled ||
-        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax )) {
+        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax ) ||
+        selectorEnabled && unknPt && unknEta) {
       eff->Fill(value, argument);
     }
   }
