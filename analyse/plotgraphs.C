@@ -253,9 +253,8 @@ void plotgraphs(
         std::cout << "Error: wrong multType!" << std::endl;
         return;
       }
-      //yMax = 0.3;
-      yMin =  -0.2;
-      yMax =   0.2;
+      yMin =    0.;
+      yMax =   0.3;
       if (ifRAW) {
         yMin = 0;
         yMax = 1;
