@@ -137,8 +137,13 @@ void fill_teff_from_file(
     assert(findPt);
     assert(findEta);
 
+    // Corresponding trackId does not exist, i.e. for fake track-candidates
+    Bool_t unknPt  = (pt < 0.)      ? true : false;
+    Bool_t unknEta = (absEta > 100) ? true : false;
+
     if (!selectorEnabled ||
-        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax )) {
+        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax ) ||
+        selectorEnabled && unknPt && unknEta) {
       eff->Fill(value, argument);
     }
   }
@@ -248,9 +253,8 @@ void plotgraphs(
         std::cout << "Error: wrong multType!" << std::endl;
         return;
       }
-      //yMax = 0.3;
-      yMin =  -0.2;
-      yMax =   0.2;
+      yMin =    0.;
+      yMax =   0.3;
       if (ifRAW) {
         yMin = 0;
         yMax = 1;
