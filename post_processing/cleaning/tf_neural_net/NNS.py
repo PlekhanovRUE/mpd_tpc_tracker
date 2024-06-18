@@ -1,14 +1,13 @@
-from tf_keras import Sequential
-from tf_keras.src.layers import Dense
-from tf_keras.src.losses import Loss
-from tf_keras.src.optimizers import Adam
+import tensorflow.keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 from data_processing.cluster_data import create_clusters
 import tensorflow as tf
 import pandas as pd
 
 
-class MarginRankingLoss(Loss):
+class MarginRankingLoss(tf.keras.losses.Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -25,7 +24,7 @@ def create_model():
     model.add(Dense(10, activation='relu', kernel_initializer='random_normal'))
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
     model.compile(loss=MarginRankingLoss(),
-                  optimizer=Adam(),
+                  optimizer=tensorflow.keras.optimizers.legacy.Adam(),
                   metrics=['accuracy'])
 
     return model

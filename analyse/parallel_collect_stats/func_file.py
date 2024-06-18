@@ -10,12 +10,9 @@ from save_to_files import write_real_tracks_header, write_track_candidates_heade
 
 
 def parse_event_data(event_number: int, input_dir: str) -> InputEventData:
-    proto_tracks_fname = \
-            f"{input_dir}{os.sep}event_{event_number}_prototracks.txt"
-    sp_points_fname = \
-            f"{input_dir}{os.sep}event_{event_number}_space_points.txt"
-    mc_track_params_fname = \
-            f"{input_dir}{os.sep}event_{event_number}_mc_track_params.txt"
+    proto_tracks_fname = f"{input_dir}/event_{event_number}_prototracks.txt"
+    sp_points_fname = f"{input_dir}/event_{event_number}_space_points.txt"
+    mc_track_params_fname = f"{input_dir}/event_{event_number}_mc_track_params.txt"
 
     input_event_data = InputEventData(
         hits_list=get_hits(sp_points_fname),
@@ -39,7 +36,9 @@ def nns_analyse(event_number: int,
 
     return nn_method(model=ml_data.model,
                      track_list=event_data.tracks,
-                     track_params=ml_data.event_df)
+                     tracks_for_nn=ml_data.event_df,
+                     event_number=ml_data.event_num_ser,
+                     indices=ml_data.indices)
 
 
 def calculate_one_event_stats(event_number: int, input_dir: str, ml_data: MlModelData) -> OneEventRealTrackParams:

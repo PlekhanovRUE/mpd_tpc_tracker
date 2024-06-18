@@ -2,19 +2,20 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional
 
-import torch
+from tensorflow.keras.models import Sequential
 from pandas import Series, DataFrame
+import pandas as pd
 
 import os
 
 import save_to_files
 from analyse.parallel_collect_stats.utils import load_csv
-from post_processing import FCNeuralNet
+from post_processing.cleaning.tf_neural_net.NNS import create_model
 
 
 @dataclass
 class MlModelData:
-    weigh_file_path: str
+    checkpoint_file_path: str
 
     params_file_path: Optional[str] = None
     indices: Series = field(init=False)
@@ -24,24 +25,28 @@ class MlModelData:
     def calc_event_filed(self, event_num: int, input_dir):
         if self.__is_one_params_file__:
             self.event_df = self.base_df[self.base_df['#format:eventNumber'] == event_num]
+            self.indices = self.event_df['prototrackIndex']
+            self.event_num_ser = self.event_df['#format:eventNumber']
+            self.event_df = self.event_df.iloc[:, 2:-2]
         else:
             ml_params_fname = f"{input_dir}{os.sep}event_{event_num}_" \
                     "track_candidates_params.txt"
             self.event_df = load_csv(ml_params_fname)
-
-        self.event_df = self.event_df.iloc[:, 2:-2]
+            self.indices = self.event_df['prototrackIndex']
+            self.event_num_ser = pd.Series([event_num] * len(self.event_df))
+            self.event_df = self.event_df.iloc[:, 1:-2]
 
     def __post_init__(self):
-        self.model = self.__load_model__()
+        self.model: Sequential = self.__load_model__()
         self.__is_one_params_file__ = bool(self.params_file_path)
 
         if self.__is_one_params_file__:
             self.base_df: DataFrame = load_csv(self.params_file_path)
 
     def __load_model__(self):
-        model = FCNeuralNet()
-        model.load_state_dict(torch.load(self.weigh_file_path, map_location=torch.device("cpu")))
-        model.eval()
+        model = create_model()
+        checkpoint_path = self.checkpoint_file_path
+        model.load_weights(checkpoint_path)
         return model
 
 
