@@ -1,6 +1,6 @@
 import os
 
-import config
+from config import SettingParams
 from analyse.parallel_collect_stats.data_class import (InputEventData, TrackData,
                                                        MlModelData, OneEventRealTrackParams)
 from analyse.parallel_collect_stats.validation_for_parallel import calc_parallel_characteristics
@@ -66,12 +66,12 @@ def calculate_one_event_stats(event_number: int, input_dir: str, ml_data: MlMode
 
 def rewrite_stats_files():
     for method in analyse_methods.keys():
-        fname = config.fname_real_tracks.format(method)
+        fname = SettingParams.fname_real_tracks.format(method)
         if os.path.exists(fname):
             os.remove(fname)
         write_real_tracks_header(fname)
 
-        fname = config.fname_track_candidates.format(method)
+        fname = SettingParams.fname_track_candidates.format(method)
         if os.path.exists(fname):
             os.remove(fname)
         write_track_candidates_header(fname)

@@ -6,7 +6,7 @@ from post_processing.cleaning.pytorch_neural_net.NN import FCNeuralNet
 from post_processing.cleaning.pytorch_neural_net.NN_utils import train_model
 from time import time
 
-# Подготовка данных
+# Data preparation
 train_dataset = NNDatasetLoader("../../../data/new_format_tracks_data/result.csv", True)
 test_dataset = NNDatasetLoader("../../../data/new_format_tracks_data/result.csv", False)
 

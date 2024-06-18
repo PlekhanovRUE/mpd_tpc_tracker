@@ -1,4 +1,4 @@
-import config
+from config import SettingParams
 
 
 def select_track_id(
@@ -15,18 +15,18 @@ def select_track_id(
   pt     = params[2]
   eta    = params[3]
   q      = params[4]
-  if config.only_primary and (not pri):
+  if SettingParams.only_primary and (not pri):
     return False
-  if (pt < config.pt_min) or (pt > config.pt_max):
+  if (pt < SettingParams.pt_min) or (pt > SettingParams.pt_max):
     return False
-  if (eta < config.eta_min) or (eta > config.eta_max):
+  if (eta < SettingParams.eta_min) or (eta > SettingParams.eta_max):
     return False
   hits_min = n_real_hits_min if n_real_hits_min is not None \
-                             else config.n_real_hits_min
+                             else SettingParams.n_real_hits_min
   if n_hits < hits_min:
     return False
   only_charged = only_charged if only_charged is not None \
-                              else config.only_charged
+                              else SettingParams.only_charged
   if only_charged and (q == 0):
     return False
 

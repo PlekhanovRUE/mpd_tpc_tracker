@@ -55,7 +55,7 @@ def get_trackId_to_hits_dict(path_hits, trackId_to_track_params=None) -> dict:
 
     track_id_list = list(hits.keys())
     for id_track in track_id_list:
-        # Удаляем вторичные треки
+        # Remove secondary tracks
         if trackId_to_track_params:
             if not select_track_id(id_track, trackId_to_track_params):
                 hits.pop(id_track)

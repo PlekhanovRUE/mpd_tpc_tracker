@@ -1,30 +1,30 @@
-# Запуск поиска параметров
+# Start searching for parameters
 
-1) Установка необходимых библиотек
+1) Installing the necessary libraries
 
-Если нет созданной виртуальной среды:
+If there is no virtual environment created:
 ```shell
 python3 -m venv venv
 ```
 
-Если виртуальная среда уже создана, необходимо её активировать:
+If a virtual environment has already been created, you need to activate it:
 ```shell
 source venv/bin/activate
 ```
 
-Установка библиотек:
+Installing libraries:
 ```shell
 pip install optuna
 pip install optuna-integration
 pip install botorch
 ```
-2) Запуск скрипта:
+2) Running the script:
 
 ```shell
 python3 param_optimize/black-box-opt.py
 ```
 
-# Параметры скрипта, которые можно варьировать:
-* **NUM_TRIALS** - число "эпох", то есть количество вызовов целевой функции;
-* **sampler** - выбор алгоритма для поиска гиперпараметров;
-* **LOG_DIR** - директория для сохранения логов поиска гиперпараметров.
+# Script parameters that can be varied:
+* **NUM_TRIALS** - the number of “epochs”, that is, the number of calls to the target function;
+* **sampler** - select an algorithm for searching for hyperparameters;
+* **LOG_DIR** - directory for saving hyperparameter search logs.

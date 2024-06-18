@@ -4,10 +4,6 @@ from typing import Optional
 
 from tensorflow.keras.models import Sequential
 from pandas import Series, DataFrame
-import pandas as pd
-
-import os
-
 import save_to_files
 from analyse.parallel_collect_stats.utils import load_csv
 from post_processing.cleaning.tf_neural_net.NNS import create_model
@@ -25,16 +21,13 @@ class MlModelData:
     def calc_event_filed(self, event_num: int, input_dir):
         if self.__is_one_params_file__:
             self.event_df = self.base_df[self.base_df['#format:eventNumber'] == event_num]
-            self.indices = self.event_df['prototrackIndex']
-            self.event_num_ser = self.event_df['#format:eventNumber']
-            self.event_df = self.event_df.iloc[:, 2:-2]
         else:
-            ml_params_fname = f"{input_dir}{os.sep}event_{event_num}_" \
-                    "track_candidates_params.txt"
+            ml_params_fname = f"{input_dir}/event_{event_num}_track_candidates_params.txt"
             self.event_df = load_csv(ml_params_fname)
-            self.indices = self.event_df['prototrackIndex']
-            self.event_num_ser = pd.Series([event_num] * len(self.event_df))
-            self.event_df = self.event_df.iloc[:, 1:-2]
+
+        self.indices = self.event_df['prototrackIndex']
+        self.event_num_ser = self.event_df['#format:eventNumber']
+        self.event_df = self.event_df.iloc[:, 2:-2]
 
     def __post_init__(self):
         self.model: Sequential = self.__load_model__()
