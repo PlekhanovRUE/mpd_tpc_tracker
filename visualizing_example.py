@@ -29,8 +29,8 @@ df = df.iloc[:, 2:-2]
 result["NNS"] = cluster_and_neural_net(model, deepcopy(result.get("RAW")), df, event_num, indices, hits=3)
 result["PWS"] = direct_cleaning(deepcopy(result.get("RAW")))
 result["PWM"] = direct_merging(deepcopy(result.get("RAW")))
-result["PGS"] = graph_merging(deepcopy(result.get("RAW")))
-result["PGM"] = graph_cleaning(deepcopy(result.get("RAW")))
+result["PGS"] = graph_cleaning(deepcopy(result.get("RAW")))
+result["PGM"] = graph_merging(deepcopy(result.get("RAW")))
 result["HCF"] = coverage_cleaning(deepcopy(result.get("RAW")))
 
 # Computation efficiency

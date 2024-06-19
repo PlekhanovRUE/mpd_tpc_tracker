@@ -10,13 +10,13 @@ Repository organization:
 4) data_processing folder - contains software for loading data or type casting
 5) post_processing folder - Contains the post-processing methods we developed
 
-# OS and Python:
+# OS and Python
 _All tests were performed in Python-3.10 on Ubuntu-22.04_
 
-# Installation:
+# Installation
 ```shell
 git clone https://github.com/PlekhanovRUE/mpd_tpc_tracker/ .
-python -m venv venv
+python3.10 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -29,7 +29,7 @@ python parallel_analyse_example.py
 config.py file contains some work settings that you can change at your discretion - such as the number of threads 
 for processing tracks, which events will be processed, etc.
 
-# Try Visualization:
+# Try Visualization
 To use it you need GUI on your system!
 
 You can test visualization of our algorithms by running the following command

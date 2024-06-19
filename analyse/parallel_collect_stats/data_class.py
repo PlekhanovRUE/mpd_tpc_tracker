@@ -17,6 +17,7 @@ class MlModelData:
     indices: Series = field(init=False)
     event_num_ser: Series = field(init=False)
     event_df: DataFrame = field(init=False)
+    model = None
 
     def calc_event_filed(self, event_num: int, input_dir):
         if self.__is_one_params_file__:
@@ -28,9 +29,9 @@ class MlModelData:
         self.indices = self.event_df['prototrackIndex']
         self.event_num_ser = self.event_df['#format:eventNumber']
         self.event_df = self.event_df.iloc[:, 2:-2]
+        self.model: Sequential = self.__load_model__()
 
     def __post_init__(self):
-        self.model: Sequential = self.__load_model__()
         self.__is_one_params_file__ = bool(self.params_file_path)
 
         if self.__is_one_params_file__:
