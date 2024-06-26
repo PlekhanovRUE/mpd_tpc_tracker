@@ -10,7 +10,7 @@ def load_csv(ml_params_fname):
         content = f.read()
 
     # Change separator
-    uniq_fname = "/tmp/" + str(uuid.uuid4().hex)
+    uniq_fname =  str(uuid.uuid4().hex)
 
     content = content.replace(" ", "")
 

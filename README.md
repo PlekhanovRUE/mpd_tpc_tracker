@@ -22,7 +22,9 @@ pip install -r requirements.txt
 ```
 
 # Try algorithms
-You can test our algorithms by running the following command
+You can test our algorithms by running the following command. 
+After the script runs, you will see in the console the calculated characteristics of the event analysis, 
+which we refer to throughout the article
 ```shell
 python parallel_analyse_example.py
 ```

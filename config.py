@@ -15,8 +15,8 @@ class SettingParams:
     ratio: float = 0.5
 
     # Start settings
-    start_event: int = 0
-    end_event: int = 9
+    start_event: int = 2
+    end_event: int = 2
     num_workers: int = 4
 
     # Result stats files settings
