@@ -1,6 +1,7 @@
 from statistics import mean
 import os
 
+
 def read_data(data_path, type):
     track_dicts = {}
     with open(data_path) as f:
@@ -30,26 +31,31 @@ def read_data(data_path, type):
     # track_df = pd.DataFrame.from_dict(track_dict)
     return track_dicts
 
+
 def calc_fake_rate(is_fake, num_reco):
     num_fake = is_fake.count(1)
-    return num_fake/num_reco
+    return num_fake / num_reco
+
 
 def calc_dupl_rate(is_dupl, num_reco):
     num_dupl = is_dupl.count(1)
-    return num_dupl/num_reco
+    return num_dupl / num_reco
+
 
 def calc_eff(is_reco):
     num_reco = is_reco.count(1)
-    return num_reco/len(is_reco)
+    return num_reco / len(is_reco)
+
 
 def calc_chars(track_dict, real_dict, chars):
-    if real_dict['is-reco'].count(1) >0:
+    if real_dict['is-reco'].count(1) > 0:
         num_reco = len(track_dict['event_number'])
         chars['eff'].append(calc_eff(real_dict['is-reco']))
         chars['dupl'].append(calc_dupl_rate(track_dict['isDup'], num_reco))
         chars['fake'].append(calc_dupl_rate(track_dict['isFake'], num_reco))
         return chars
     return chars
+
 
 def process_events(path_cand, path_real):
     reco_tracks_events = read_data(path_cand, type='cands')
@@ -64,6 +70,7 @@ def process_events(path_cand, path_real):
     avg_chars['avg_fake'] = mean(all_chars['fake'])
     return avg_chars
 
+
 def process_methods(dir_path):
     chars = {}
     for filename in os.listdir(dir_path):
@@ -74,8 +81,9 @@ def process_methods(dir_path):
     return chars
 
 
-avg_chars = process_methods('chars_data')
-for method in avg_chars:
-    print(method, '\n', f'Efficiency: {avg_chars[method]["avg_eff"]} \n',
-          f'Duplicate rate: {avg_chars[method]["avg_dupl"]}\n',
-          f'Fake rate: {avg_chars[method]["avg_fake"]}\n')
+def show_results(result_dir: str):
+    avg_chars = process_methods(result_dir)
+    for method in avg_chars:
+        print(method, '\n', f'Efficiency: {avg_chars[method]["avg_eff"]} \n',
+              f'Duplicate rate: {avg_chars[method]["avg_dupl"]}\n',
+              f'Fake rate: {avg_chars[method]["avg_fake"]}\n')

@@ -1,54 +1,53 @@
-# Запуск поиска параметров
+# Start searching for parameters
 
-1) Установка необходимых библиотек
+1) Installing the necessary libraries
 
-Если нет созданной виртуальной среды:
+If there is no virtual environment created:
 ```shell
 python3 -m venv venv
 ```
 
-Если виртуальная среда уже создана, необходимо её активировать:
+If a virtual environment has already been created, you need to activate it:
 ```shell
 source venv/bin/activate
 ```
 
-Установка библиотек:
+Installing libraries:
 ```shell
 pip install optuna
 pip install optuna-integration
 pip install botorch
 ```
-2) Запуск скрипта:
+2) Running the script:
 
 ```shell
 python3 param_optimize/black-box-opt.py
 ```
-Можно добавить опциональные параметры. Например:
+You can add optional parameters. For example:
 
 ```shell
 python3 param_optimize/black-box-opt.py -logdir logs -n_trials 100 -method random -n_events 20
 ```
 
-# Опциональные параметры скрипта:
-* **-logdir** – директория для сохранения логов поиска гиперпараметров (<u>значение по умолчанию: log_params</u>, если такой папки нет, она будет создана в директории запуска скрипта);
-* **-n_trials** – число "эпох", то есть количество вызовов целевой функции (<u>значение по умолчанию: 200</u>, если введённое значение < 1, число эпох не будет ограничено, то есть будет осуществляться полный перебор);
-* **-method** – выбор алгоритма для поиска гиперпараметров (см. ниже) (<u>значение по умолчанию: random</u>), доступные значения:
-    + _random_ – случайный поиск (RandomSearch),
-    + _tpe_ – древовидный парзеновский оценщик (англ. _Tree-structured Parzen Estimator, TPE_),
-    + _cmaes_ – стратегия эволюции адаптации ковариационной матрицы (англ. _Covariance Matrix Adaptation Evolution Strategy, CMA-ES_),
-    + _nsgaii_ – генетический алгоритм с недоминируемой сортировкой (англ. _Non-Dominated Sorting Genetic Algorithm, NSGA-II_), 
-    + _qmc_ – квази Монте-Карло (англ. _Quasi-Monte Carlo, QMC_), 
-    + _gp_ – байесовская оценка гауссовского процесса (англ. _Gaussian process-based Bayesian optimization, GP_),
-    + _bayes_ – байесовская оптимизация (Bayesian Optimization).
-* **-n_events** – число событий для трекера (<u>значение по умолчанию: 20</u>)
+# Optional script parameters:
+* **-logdir** – directory for saving hyperparameter search logs (<u>default value: log_params</u>, if there is no such folder, it will be created in the script launch directory);
+* **-n_trials** – the number of “epochs”, that is, the number of calls to the target function (<u>default value: 200</u>, if the entered value < 1, the number of epochs will not be limited, that is, the full bust);
+* **-method** – select the algorithm for finding hyperparameters (see below) (<u>default value: random</u>), available values:
+ + _random_ – random search (RandomSearch),
+ + _tpe_ – tree-structured Parzen Estimator (TPE_),
+ + _cmaes_ – covariance matrix adaptation evolution strategy (eng. _Covariance Matrix Adaptation Evolution Strategy, CMA-ES_),
+ + _nsgaii_ – genetic algorithm with non-dominated sorting (eng. _Non-Dominated Sorting Genetic Algorithm, NSGA-II_),
+ + _qmc_ – quasi Monte Carlo (eng. _Quasi-Monte Carlo, QMC_),
+ + _gp_ – Bayesian process-based Bayesian optimization, GP_),
+ + _bayes_ – Bayesian Optimization.
+* **-n_events** – number of events for the tracker (<u>default value: 20</u>)
 
-# Доступные алгоритмы оптимизации:
+# Available optimization algorithms:
 
-* **Random** – это метод, который выбирает случайные комбинации параметров из заданного пространства параметров;
-* **TPE** – это метод, в котором 1) с помощью RandomSearch собирается некоторое число наблюдений; 2) задается два различных распределения гиперпараметров: первое при значениях целевой функции меньших, чем пороговое значение, второе - при значениях целевой функции больших, чем пороговое значение; 3) из второго распределения сэмплируются несколько значений-кандидатов; 4) из этих кандидатов находится тот, который с большей вероятностью окажется во второй группе (состоящей из лучших наблюдений); 5) этот кандидат используется для следующей итерации;
-* **CMA-ES** – это метод, основанный на принципе биологической эволюции, а именно на повторяющемся взаимодействии вариаций (посредством рекомбинации и мутации) и отбора: в каждом поколении (итерации) новые особи (кандидаты на решение) генерируются путем вариации, обычно стохастическим образом, текущих родительских особей. На каждом поколении происходит перерасчёт матрицы ковариации, которая непосредственно влияет на размер и форму области, где будут генерироваться будущие потенциальные решения;
-* **NSGA-II** – это метод, основная идея которого состоит в том, чтобы заставить совокупность возможных решений развиваться в направлении лучшего решения, чтобы решить задачу многокритериальной оптимизации, то есть находится набор оптимальных по Парето решений, так называемых недоминируемых решений. Недоминируемое решение – это решение, которое обеспечивает подходящий компромисс между всеми целями, не ухудшая при этом ни одну из них. Если какое-либо решение не доминирует над ним, решение x будет считаться недоминируемым и будет выбрано NSGA-II как одно из множества фронтов Парето;
-* **QMC** – это метод, использующий последовательности с низким расхождением (также называемых квазислучайными последовательностями или субслучайными последовательностями) для достижения уменьшения дисперсии;
-* **GP** – это байесовская оптимизация (BO), основанная на регрессии гауссовского процесса (GPR);
-* **BAYES** - это итерационный метод, который на каждой итерации указывает наиболее вероятную точку, в которой целевая функция будет оптимальна. При этом выдаваемые вероятные точки включают две компоненты: 1) хорошая точка там, где согласно истории функция выдавала хорошие результаты на предыдущих вызовах (exploitation), 2) хорошая точка там, где высокая неопределенность, то есть неисследованные части пространства (exploration).
-
+* **Random** is a method that selects random combinations of parameters from a given parameter space;
+* **TPE** is a method in which 1) a number of observations are collected using RandomSearch; 2) two different distributions of hyperparameters are specified: the first for values ​​of the objective function less than the threshold value, the second - for values ​​of the objective function greater than the threshold value; 3) several candidate values ​​are sampled from the second distribution; 4) from these candidates, the one that is most likely to end up in the second group (consisting of the best observations) is found; 5) this candidate is used for the next iteration;
+* **CMA-ES** is a method based on the principle of biological evolution, namely the repeated interaction of variation (through recombination and mutation) and selection: in each generation (iteration), new individuals (candidate solutions) are generated by variation, usually in a stochastic manner, the current parents. At each generation, the covariance matrix is ​​recalculated, which directly affects the size and shape of the region where future potential solutions will be generated;
+* **NSGA-II** is a method whose main idea is to force the set of possible solutions to evolve towards the best solution in order to solve a multicriteria optimization problem, that is, a set of Pareto optimal solutions, so-called non-dominated solutions, is found. A non-dominated solution is a solution that provides a suitable trade-off between all objectives without degrading any of them. If any solution does not dominate it, solution x will be considered non-dominated and will be selected by NSGA-II as one of the set of Pareto fronts;
+* **QMC** is a method that uses low variance sequences (also called quasi-random sequences or sub-random sequences) to achieve variance reduction;
+* **GP** is a Bayesian optimization (BO) based on Gaussian process regression (GPR);
+* **BAYES** is an iterative method that, at each iteration, indicates the most likely point at which the objective function will be optimal. In this case, the generated probable points include two components: 1) a good point where, according to history, the function produced good results on previous calls (exploitation), 2) a good point where there is high uncertainty, that is, unexplored parts of space (exploration).

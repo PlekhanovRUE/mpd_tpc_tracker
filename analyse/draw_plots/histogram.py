@@ -14,6 +14,6 @@ for file_name in file_list:
 
 plt.hist(chi2, bins=20)
 plt.xlabel('ch2')
-plt.ylabel('Частота')
+plt.ylabel('frequency')
 plt.title(path)
 plt.show()

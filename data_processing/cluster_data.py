@@ -1,8 +1,8 @@
 def create_clusters(track_list, min_n_shared_hits):
     # Sort tracks by length in descending order
-    track_dict = {index: value for index, value in enumerate(track_list)}
+    trackId_to_hits_dict = {index: value for index, value in enumerate(track_list)}
     # Converting tracks to format as {track_id: hit_id_list}
-    sorted_tracks = dict(sorted(track_dict.items(), key=lambda item: len(item[1]), reverse=True))
+    sorted_tracks = dict(sorted(trackId_to_hits_dict.items(), key=lambda item: len(item[1]), reverse=True))
     clusters = []
     used_track_id = set()
 

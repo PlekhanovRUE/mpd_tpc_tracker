@@ -25,13 +25,13 @@ def separate_tracks(track_one: list, track_two: list):
 def sort_hits(points):
     points = list(map(lambda x: np.array(x), points))
 
-    # Нахождение расстояния каждой точки до центра координат
+    # Finding the distance of each point to the coordinate center
     distances_to_center = np.linalg.norm(points, axis=1)
 
-    # Нахождение индекса ближайшей к центру точки
+    # Finding the index of the point closest to the center
     nearest_point_index = np.argmin(distances_to_center)
 
-    # Формирование линии из точек
+    # Forming a line from points
     line = [points[nearest_point_index]]
     remaining_points = np.delete(points, np.where(points == points[nearest_point_index])[0], axis=0)
     while len(remaining_points) > 0:

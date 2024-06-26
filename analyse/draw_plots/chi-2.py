@@ -1,9 +1,9 @@
-from data_processing.parse_data import get_hits_data_for_validation
+from data_processing.parse_data import get_hits
 import pandas as pd
 import re
 
 def get_tracks_data(track_path, hit_path) -> list:
-    hit_list = get_hits_data_for_validation(hit_path)
+    hit_list = get_hits(hit_path)
     tracks = []
     track_id = 0
     amount_parameters_in_hit = 0
@@ -21,7 +21,7 @@ def get_tracks_data(track_path, hit_path) -> list:
 
             temp = []
             tracks.append([])
-            mas = i.split(", ")
+            mas = i.split(",")
             amount_characteristics = 0
             j = 0
             while j < len(mas) or temp:

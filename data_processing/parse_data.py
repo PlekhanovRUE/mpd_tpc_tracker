@@ -1,10 +1,12 @@
 from post_processing.cleaning.direct_cleaning import sort_hits
+from selector import select_track_id
+
 from collections import defaultdict
 import re
 
 
 def get_tracks_data(track_path, hit_path, track_consist_of_hit_id=False) -> list:
-    hit_list = get_hits_data_for_validation(hit_path)
+    hit_list = get_hits(hit_path)
     tracks = []
     track_id = 0
     amount_parameters_in_hit = 0
@@ -22,7 +24,7 @@ def get_tracks_data(track_path, hit_path, track_consist_of_hit_id=False) -> list
 
             temp = []
             tracks.append([])
-            mas = i.split(", ")
+            mas = i.split(",")
             amount_characteristics = 0
             j = 0
             while j < len(mas) or temp:
@@ -41,46 +43,60 @@ def get_tracks_data(track_path, hit_path, track_consist_of_hit_id=False) -> list
     return tracks
 
 
-def get_hits_data(path_hits, track_id_dict=None) -> dict:
+def get_trackId_to_hits_dict(path_hits, trackId_to_track_params=None) -> dict:
     hits = defaultdict(list)
     with open(path_hits) as f:
         for i in f:
             if 'format' in i:
                 continue
 
-            hit = list(map(float, i.split(", ")))
+            hit = list(map(float, i.split(",")))
             hits[int(hit[3])].append(hit[:3])
 
     track_id_list = list(hits.keys())
     for id_track in track_id_list:
-        # Удаляем вторичные треки
-        if track_id_dict:
-            if not track_id_dict[id_track]:
+        # Remove secondary tracks
+        if trackId_to_track_params:
+            if not select_track_id(id_track, trackId_to_track_params):
                 hits.pop(id_track)
                 continue
         hits[id_track] = sort_hits(hits[id_track])
     return hits
 
 
-def get_hits_data_for_validation(path_hits) -> list:
+def get_hits(path_hits) -> list:
     hits = []
     with open(path_hits) as f:
         for i in f:
             if 'format' in i:
                 continue
 
-            hit = list(map(float, i.split(", ")))
+            hit = list(map(float, i.split(",")))
             hits.append(hit)
     return hits
 
 
-def get_track_id(path) -> dict:
-    track_id_dict = {}
+def get_trackId_to_track_params(path) -> dict:
+    trackId_to_track_params = {}
     with open(path) as f:
         for i in f:
             if 'format' in i:
                 continue
 
-            info = list(map(int, i.split(", ")))
-            track_id_dict[info[0]] = info[1]
-    return track_id_dict
+            splitted = i.split(",")
+
+            q_str = splitted[6]
+            q = float(q_str) # if q_str == 'nan' => q = nan
+
+            info = [
+                int(splitted[0]),   # trackId  - key
+                int(splitted[1]),   # is primary [0]
+                int(splitted[2]),   # nHits      [1]
+                float(splitted[3]), # pt         [2]
+                float(splitted[4]), # eta        [3]
+                q                   # charge     [4]
+            ]
+
+            trackId_to_track_params[info[0]] = info[1:]
+
+    return trackId_to_track_params

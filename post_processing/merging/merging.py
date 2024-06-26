@@ -159,8 +159,8 @@ def merge_og(tracks: list, allowable_angle=160, allowable_length=700, allowable_
     return tracks
 
 
-def find_key(dict, track_dict):
+def find_key(dict, trackId_to_hits_dict):
     for key, track in dict.iteritems():
-        if track == track_dict:
+        if track == trackId_to_hits_dict:
             return key
 
