@@ -1,4 +1,5 @@
 from functools import partial
+import threading
 import os
 import sys
 import json
@@ -11,15 +12,27 @@ from argparse import ArgumentParser
 
 warnings.filterwarnings("ignore", category=optuna.exceptions.ExperimentalWarning)
 
+id_threads = {}
+id_curr = 1
+
 search_space = {}
 
 fixed_params = {
-    "SelectorPtMax": 10.0,
-    "NmaxPerSurface": 5,
-    "MaxPtScattering": 5.0,
-    "SeedBinSizeR": 10.0,
+    "EtaMax": 2.11,
+    "PtMin": 0.0,
     "CollisionZmin": -300.0,
     "CollisionZmax": 300.0,
+    "SeedBinSizeR": 10.0,
+    "SeedDeltaRmin": 10.0,
+    "SeedDeltaRmax": 60.0,
+    "SeedDeltaZmax": 200.0,
+    "MaxSeedsPerSpM": 3,
+    "SigmaScattering": 5,
+    "MaxPtScattering": 5.0,
+    "RadLengthPerSeed": 0.05,
+    "BeamX": 0.0,
+    "BeamY": 0.0,
+    "ImpactMax": 30.0,
     "SigmaLoc0": 0.5,
     "SigmaLoc1": 0.5,
     "SigmaPhi": 0.00872665,
@@ -35,9 +48,12 @@ fixed_params = {
     "ResolvePassive": False,
     "ResolveMaterial": True,
     "ResolveSensitive": True,
+    "PropagationMaxSteps": 1000,
     "MultipleScattering": True,
     "EnergyLoss": True,
     "Smoothing": True,
+    "Chi2max": 30.0,
+    "NmaxPerSurface": 5,
     "ComputeSharedHits": False,
     "TrackMinLength": 4,
     "NewHitsInRow": 6,
@@ -48,6 +64,7 @@ fixed_params = {
     "SelectorPhiMin": -3.15,
     "SelectorPhiMax": 3.15,
     "AbsEtaMin": 0,
+    "SelectorPtMax": 10.0,
     "KeepNeutral": False,
     "NHitsMin": 9,
     "TruthMatchProbMin": 0.5,
@@ -80,7 +97,12 @@ samplers_optuna = {
 def to_json(dct_vals: dict):
     '''dump to json'''
 
-    name_json = 'acts_params_config.json'
+    thread_id = threading.current_thread().ident
+    if thread_id not in id_threads:
+        global id_curr
+        id_threads[thread_id] = id_curr
+        id_curr += 1
+    name_json = f'acts_params_config_{id_threads[thread_id]}.json'
     with open(name_json, 'w', encoding='utf-8') as f:
         json.dump(dct_vals, f, indent=4)
     return name_json
@@ -122,37 +144,28 @@ def write_log(_, trial):
 def objective(trial, n_events):
     '''optuna func to optimize'''
 
-    #SeedBinSizeR = trial.suggest_int("SeedBinSizeR", 6, 36, step=1) # no-effect
-    SeedDeltaRmin = trial.suggest_int("SeedDeltaRmin", 5, 20, step=1)
-    SeedDeltaRmax = trial.suggest_int("SeedDeltaRmax", 30, 120, step=2)
-    SeedDeltaZmax = trial.suggest_int("SeedDeltaZmax", 100, 400, step=2)
-    SigmaScattering = trial.suggest_int("SigmaScattering", 1, 10, step=1)
-    #MaxPtScattering = trial.suggest_int("MaxPtScattering", 1, 10, step=1) # no-effect
-    RadLengthPerSeed = trial.suggest_float("RadLengthPerSeed", 0.01, 0.1, step=0.01)
-    Chi2max = trial.suggest_int("Chi2max", 15, 60, step=5)
-    MaxSeedsPerSpM = trial.suggest_int("MaxSeedsPerSpM", 1, 10, step=1)
-    ImpactMax = trial.suggest_int("ImpactMax", 10, 100, step=5)
-    PropagationMaxSteps = trial.suggest_int("PropagationMaxSteps", 100, 1000, step=100)
-    #NmaxPerSurface = trial.suggest_int("NmaxPerSurface", 1, 10, step=1) # no-effect
-    EtaMax = trial.suggest_float("EtaMax", 1.8, 2.2, step=0.04)
-    PtMin = trial.suggest_float("PtMin", 0.04, 0.1, step=0.002)
-    BeamX = trial.suggest_int("BeamX", 0, 10, step=1)
-    BeamY = trial.suggest_int("BeamY", 0, 10, step=1)
+    # #SeedBinSizeR = trial.suggest_int("SeedBinSizeR", 6, 36, step=1) # no-effect
+    # SeedDeltaRmin = trial.suggest_int("SeedDeltaRmin", 5, 20, step=1)
+    # SeedDeltaRmax = trial.suggest_int("SeedDeltaRmax", 30, 120, step=2)
+    # SeedDeltaZmax = trial.suggest_int("SeedDeltaZmax", 100, 400, step=2)
+    # SigmaScattering = trial.suggest_int("SigmaScattering", 1, 10, step=1)
+    # MaxPtScattering = trial.suggest_int("MaxPtScattering", 1, 5, step=1)
+    # RadLengthPerSeed = trial.suggest_float("RadLengthPerSeed", 0.01, 0.1, step=0.01)
+    # Chi2max = trial.suggest_int("Chi2max", 15, 60, step=5)
+    # MaxSeedsPerSpM = trial.suggest_int("MaxSeedsPerSpM", 1, 10, step=1)
+    # ImpactMax = trial.suggest_int("ImpactMax", 10, 100, step=5)
+    # PropagationMaxSteps = trial.suggest_int("PropagationMaxSteps", 100, 1000, step=100)
+    # #NmaxPerSurface = trial.suggest_int("NmaxPerSurface", 1, 10, step=1) # no-effect
+    # EtaMax = trial.suggest_float("EtaMax", 1.8, 2.2, step=0.04)
+    # PtMin = trial.suggest_float("PtMin", 0.04, 0.1, step=0.002)
+    # BeamX = trial.suggest_int("BeamX", 0, 10, step=1)
+    # BeamY = trial.suggest_int("BeamY", 0, 10, step=1)
+    NumLayers = trial.suggest_int("NumLayers", 171, 229, step=2)
+    NumSectors = trial.suggest_int("NumSectors", 151, 209, step=2)
 
     dct_params = {
-        "EtaMax": EtaMax,
-        "PtMin": PtMin,
-        "BeamX": BeamX,
-        "BeamY": BeamY,
-        "SeedDeltaRmin": SeedDeltaRmin,
-        "SeedDeltaRmax": SeedDeltaRmax,
-        "SeedDeltaZmax": SeedDeltaZmax,
-        "SigmaScattering": SigmaScattering,
-        "RadLengthPerSeed": RadLengthPerSeed,
-        "Chi2max": Chi2max,
-        "MaxSeedsPerSpM": MaxSeedsPerSpM,
-        "ImpactMax": ImpactMax,
-        "PropagationMaxSteps": PropagationMaxSteps
+        "NumLayers": NumLayers,
+        "NumSectors": NumSectors
     }
     
     eff_sel, eff_all, fake_sel, fake_all, memory = opt_func(dct_params, n_events)
@@ -163,7 +176,8 @@ def objective(trial, n_events):
 def run_optimization(logdir: str,
                      n_trials: int or None,
                      method: str,
-                     n_events: int):
+                     n_events: int,
+                     n_jobs: int):
     '''main func for optimization'''
 
     if not os.path.isdir(logdir):
@@ -193,7 +207,7 @@ def run_optimization(logdir: str,
     if n_trials < 1:
         n_trials = None
 
-    study.optimize(partial(objective, n_events=n_events), n_trials=n_trials, callbacks=[write_log], n_jobs=1)
+    study.optimize(partial(objective, n_events=n_events), n_trials=n_trials, callbacks=[write_log], n_jobs=n_jobs)
     best_trial = max(study.best_trials, key=lambda t: t.values[0])
     best_params = best_trial.params
 
@@ -225,10 +239,17 @@ def main():
                         default=20,
                         type=int,
                         help='number of events for tracker')
+    parser.add_argument('-n_jobs',
+                        default=1,
+                        type=int,
+                        help='number of parallel jobs')
     
     args = parser.parse_args()
+    if args.n_jobs < 1 or args.n_jobs > os.cpu_count():
+        print('Wrong n_jobs is specified.')
+        sys.exit()
 
-    run_optimization(args.logdir, args.n_trials, args.method, args.n_events)
+    run_optimization(args.logdir, args.n_trials, args.method, args.n_events, args.n_jobs)
 
 
 if __name__ == "__main__":
