@@ -7,7 +7,7 @@ import logging
 import warnings
 import datetime
 import optuna
-from acts_launcher import run
+from acts_launcher import run_acts
 from argparse import ArgumentParser
 
 warnings.filterwarnings("ignore", category=optuna.exceptions.ExperimentalWarning)
@@ -113,7 +113,9 @@ def opt_func(dct_params: dict, n_events: int):
 
     dct_vals = {**dct_params, **fixed_params}
     name = to_json(dct_vals)
-    eff_sel, eff_all, fake_sel, fake_all, memory = run(name, n_events=n_events)
+    infile = '/home/vvburdelnaya/tracker/mpdroot/evetest.root'
+    eff_sel, eff_all, fake_sel, fake_all, memory = run_acts(
+            infile=infile, json_fname=name, n_events=n_events)
     return eff_sel, eff_all, fake_sel, fake_all, memory
 
 

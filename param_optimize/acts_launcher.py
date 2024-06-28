@@ -20,27 +20,24 @@ def save_log(path, stdout, zip_log=True):
         subprocess.run(['gzip', fname])
 
 
-def get_mpdroot_bin_path():
-    try:
-        bin_path = os.environ['VMCWORKDIR']
-    except:
-        print('VMCWORKDIR environment variable is not set. '
-              'Please run config/env.sh.')
-        raise
-    return bin_path
+def get_mpdroot_bin_dir():
+    if 'VMCWORKDIR' not in os.environ:
+        raise ValueError('VMCWORKDIR environment variable is not set. '
+                         'Please run <MPDROOT_INSTALLATION_DIR>/config/env.sh')
+    return os.environ['VMCWORKDIR']
 
 
-def run_acts(
+def _run_acts(
+        infile,
         json_fname,
-        infile=None,
         outfile=None,
         start_event=None,
         n_events=None):
 
-    bin_path = get_mpdroot_bin_path()
-    macro = os.path.join(bin_path, 'macros', 'common', 'trackingActs.C')
-    outfile_full = os.path.join(bin_path, outfile)
-    macro_s = f'{macro}("{infile}", "{outfile}", {start_event}, {n_events})'
+    bin_dir = get_mpdroot_bin_dir()
+    macro = os.path.join(bin_dir, 'macros', 'common', 'trackingActs.C')
+    macro_s = f'{macro}("{infile}", "{outfile}", {start_event}, ' + \
+                      f'{n_events}, "{json_fname}")'
     cmd_l = ['root', '-q', '-b', f"'{macro_s}'"]
     cmd_s = ' '.join(cmd_l)
     out = subprocess.run(
@@ -92,24 +89,46 @@ def parse_output(arg):
 
     return eff_sel, eff_all, fake_sel, fake_all, memory
 
-# Run ACTS, parse stdout, return some values.
-# This value must be non-negative. Otherwise some error occured.
-def run(
+
+def check_path_exist(path):
+    if not os.path.exists(path):
+        raise ValueError(f'"{path}" does not exist!')
+
+
+def check_params(json_fname, json_out_dir, infile):
+    check_path_exist(json_fname)
+    check_path_exist(json_out_dir)
+    check_path_exist(infile)
+
+
+# Run ACTS, parse stdout, return list of values.
+# Every return value must be non-negative, otherwise some error occured.
+def run_acts(
+        infile,
         json_fname,
-        infile='/home/vvburdelnaya/tracker/mpdroot/evetest.root',
+        json_out_dir=".", # if empty then will be set to $VMCWORKDIR/etc
         outfile='',
         start_event=0,
         n_events=2,
         log=False,
         log_dir=''):
-    bin_path = get_mpdroot_bin_path()
-    shutil.copy(json_fname, os.path.join(bin_path, 'etc'))
-    if not outfile:
-        outfile = os.path.join(bin_path, 'macros', 'common', 'dst.root')
+    bin_dir = get_mpdroot_bin_dir()
+    if not json_out_dir:
+        json_out_dir = os.path.join(bin_dir, 'etc')
 
-    stdout = run_acts(
-        json_fname,
+    check_params(json_fname, json_out_dir, infile)
+
+#   shutil.copy(json_fname, os.path.join(bin_dir, 'etc'))
+    # full path to not raise exception on file already exists
+    json_fname_out = os.path.join(json_out_dir, json_fname)
+    shutil.move(json_fname, json_fname_out)
+
+    if not outfile:
+        outfile = os.path.join(bin_dir, 'macros', 'common', 'dst.root')
+
+    stdout = _run_acts(
         infile=infile,
+        json_fname=json_fname_out,
         start_event=start_event,
         n_events=n_events,
         outfile=outfile)
@@ -119,9 +138,8 @@ def run(
     return eff_sel, eff_all, fake_sel, fake_all, memory
 
 
-# test
+def test(infile, json):
 #infile = '/path/to/input/root/file'
 #json = '/path/to/acts_params_config.json'
-#
-#eff = run(json, infile=infile, log=True, log_dir='/tmp')
-#print(f"eff = {eff}")
+    eff = run_acts(infile=infile, json_fname=json, log=True, log_dir='/tmp')
+    print(f"eff = {eff}")
