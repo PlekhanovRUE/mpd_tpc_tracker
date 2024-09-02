@@ -102,7 +102,8 @@ def to_json(dct_vals: dict):
         global id_curr
         id_threads[thread_id] = id_curr
         id_curr += 1
-    name_json = f'acts_params_config_{id_threads[thread_id]}.json'
+    # name_json = f'acts_params_config_{id_threads[thread_id]}.json'
+    name_json = 'acts_params_config.json'
     with open(name_json, 'w', encoding='utf-8') as f:
         json.dump(dct_vals, f, indent=4)
     return name_json
@@ -114,15 +115,16 @@ def opt_func(dct_params: dict, n_events: int):
     dct_vals = {**dct_params, **fixed_params}
     name = to_json(dct_vals)
     infile = '/home/vvburdelnaya/tracker/mpdroot/evetest.root'
-    eff_sel, eff_all, fake_sel, fake_all, memory = run_acts(
-            infile=infile, json_fname=name, n_events=n_events)
-    return eff_sel, eff_all, fake_sel, fake_all, memory
+    eff_sel, fake_sel, memory = run_acts(infile=infile,
+                                         json_fname=name,
+                                         n_events=n_events)
+    return eff_sel, fake_sel, memory
 
 
 def write_log(_, trial):
     '''custom callback'''
 
-    eff_sel, eff_all, fake_sel, fake_all, memory = trial.values
+    eff_sel, fake_sel, memory = trial.values
 
     params = {repr(key): val for key, val in trial.params.items()}
     num = trial.number
@@ -133,12 +135,10 @@ def write_log(_, trial):
     dr = f'\n\t"duration(min)": {minutes},'
     me = f'\n\t"memory": {memory},'
     es = f'\n\t"eff_sel": {eff_sel},'
-    ea = f'\n\t"eff_all": {eff_all},'
     fs = f'\n\t"fake_sel": {fake_sel},'
-    fa = f'\n\t"fake_all": {fake_all},'
     pm = f'\n\t"params": {params}'
 
-    msg = f'"{num}": {{{dr}{me}{es}{ea}{fs}{fa}{pm}}},'
+    msg = f'"{num}": {{{dr}{me}{es}{fs}{pm}}},'
 
     logging.info(msg)
 
@@ -170,9 +170,9 @@ def objective(trial, n_events):
         "NumSectors": NumSectors
     }
     
-    eff_sel, eff_all, fake_sel, fake_all, memory = opt_func(dct_params, n_events)
+    eff_sel, fake_sel, memory = opt_func(dct_params, n_events)
 
-    return eff_sel, eff_all, fake_sel, fake_all, memory
+    return eff_sel, fake_sel, memory
 
 
 def run_optimization(logdir: str,
@@ -203,7 +203,7 @@ def run_optimization(logdir: str,
         sys.exit(1)
 
     study = optuna.create_study(
-        directions=["maximize", "maximize", "minimize", "minimize", "minimize"],
+        directions=["maximize", "minimize", "minimize"],
         sampler=sampler
     )
     if n_trials < 1:

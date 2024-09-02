@@ -37,7 +37,7 @@ def _run_acts(
     bin_dir = get_mpdroot_bin_dir()
     macro = os.path.join(bin_dir, 'macros', 'common', 'trackingActs.C')
     macro_s = f'{macro}("{infile}", "{outfile}", {start_event}, ' + \
-                      f'{n_events}, "{json_fname}")'
+        f'{n_events}, EQAMode::OFF, "{json_fname}")'
     cmd_l = ['root', '-q', '-b', f"'{macro_s}'"]
     cmd_s = ' '.join(cmd_l)
     out = subprocess.run(
@@ -60,34 +60,26 @@ def parse_line(line, recompile, type_to_cast=float):
 
 
 def parse_output(arg):
-    eff_sel_compile  = re.compile("^Total efficiency.*selected particles.* (.*)$")
-    eff_all_compile  = re.compile("^Total efficiency.*all particles.* (.*)$")
-    fake_sel_compile = re.compile("^Total fake rate.*selected particles.* (.*)$")
-    fake_all_compile = re.compile("^Total fake rate.*all particles.* (.*)$")
+    eff_sel_compile  = re.compile("^Total efficiency.* (.*)$")
+    fake_sel_compile = re.compile("^Total fake rate.* (.*)$")
     memory_compile   = re.compile("^.*Memory.*virtual (.*) KB$")
 
     eff_sel  = None
-    eff_all  = None
     fake_sel = None
-    fake_all = None
     memory   = None
     arg_sp = arg.split(os.linesep)
 
     for l in arg_sp:
         if (v1 := parse_line(l, eff_sel_compile))  is not None: eff_sel  = v1
-        if (v2 := parse_line(l, eff_all_compile))  is not None: eff_all  = v2
-        if (v3 := parse_line(l, fake_sel_compile)) is not None: fake_sel = v3
-        if (v4 := parse_line(l, fake_all_compile)) is not None: fake_all = v4
-        if (v5 := parse_line(l, memory_compile, type_to_cast=int)) is not None:
-            memory = v5
+        if (v2 := parse_line(l, fake_sel_compile)) is not None: fake_sel = v2
+        if (v3 := parse_line(l, memory_compile, type_to_cast=int)) is not None:
+            memory = v3
 
     eff_sel  = -1 if eff_sel  is None else eff_sel
-    eff_all  = -1 if eff_all  is None else eff_all
     fake_sel = -1 if fake_sel is None else fake_sel
-    fake_all = -1 if fake_all is None else fake_all
     memory   = -1 if memory   is None else memory
 
-    return eff_sel, eff_all, fake_sel, fake_all, memory
+    return eff_sel, fake_sel, memory
 
 
 def check_path_exist(path):
@@ -106,7 +98,7 @@ def check_params(json_fname, json_out_dir, infile):
 def run_acts(
         infile,
         json_fname,
-        json_out_dir=".", # if empty then will be set to $VMCWORKDIR/etc
+        json_out_dir=None, # if empty then will be set to $VMCWORKDIR/etc
         outfile='',
         start_event=0,
         n_events=2,
@@ -134,8 +126,8 @@ def run_acts(
         outfile=outfile)
     if log:
         save_log(log_dir, stdout)
-    eff_sel, eff_all, fake_sel, fake_all, memory = parse_output(stdout)
-    return eff_sel, eff_all, fake_sel, fake_all, memory
+    eff_sel, fake_sel, memory = parse_output(stdout)
+    return eff_sel, fake_sel, memory
 
 
 def test(infile, json):
