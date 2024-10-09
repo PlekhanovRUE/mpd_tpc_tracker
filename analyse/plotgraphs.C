@@ -54,14 +54,14 @@ TEfficiency *createTEff(
     std::string name,
     std::string description,
     Int_t nBins,
-    Double_t minArgument,
-    Double_t maxArgument,
+    Double_t minArg,
+    Double_t maxArg,
     Int_t lineWidth,
     Color_t color,
     Style_t markerStyle)
 {
   auto *eff = new TEfficiency(
-      name.c_str(), description.c_str(), nBins, minArgument, maxArgument);
+      name.c_str(), description.c_str(), nBins, minArg, maxArg);
 
   eff->SetLineColor(color);
   eff->SetMarkerStyle(markerStyle);
@@ -81,8 +81,8 @@ void setYMinMax(TEfficiency *eff, Double_t min, Double_t max) {
 
 void fill_teff_from_file(
     TEfficiency *eff, Int_t argIdx, Int_t valueIdx, std::string fname,
-    Bool_t selectorEnabled, Int_t ptArgIdx, Int_t etaArgIdx,
-    Double_t selPtMin = 0, Double_t selAbsEtaMax = 0) {
+    Bool_t selectorEnabled, Int_t ptArgIdx, Int_t etaArgIdx, Int_t selectedIdx,
+    Double_t selPtMin = 0, Double_t selEtaMax = 0) {
 
   std::ifstream fIn(fname);
   if (!fIn.good()) {
@@ -104,6 +104,8 @@ void fill_teff_from_file(
     Double_t argument;
     Double_t absEta;
     Double_t pt;
+    std::string selectedStr;
+    Bool_t selected = true;
 
     Int_t valueInt;
     Bool_t value;
@@ -130,6 +132,19 @@ void fill_teff_from_file(
       } else if (i == etaArgIdx) {
         absEta = fabs(std::stod(substr));
         findEta = true;
+      } else if (i == selectedIdx) {
+        selectedStr = substr;
+        if (selectedStr == "True") {
+          selected = 1;
+        } else if (selectedStr == "False") {
+          selected = 0;
+        } else if (selectedStr == "None") {
+          selected = 1;
+        } else {
+            std::cout << "selected: actual: " << selectedStr << ", " <<
+                         "expected [True, False, None]" << std::endl;
+            assert(0);
+        }
       }
     }
     assert(findArgument);
@@ -141,8 +156,11 @@ void fill_teff_from_file(
     Bool_t unknPt  = (pt < 0.)      ? true : false;
     Bool_t unknEta = (absEta > 100) ? true : false;
 
+    if (!selected) {
+      continue;
+    }
     if (!selectorEnabled ||
-        selectorEnabled && (pt > selPtMin) && (absEta < selAbsEtaMax ) ||
+        selectorEnabled && (pt > selPtMin) && (absEta < selEtaMax ) ||
         selectorEnabled && unknPt && unknEta) {
       eff->Fill(value, argument);
     }
@@ -168,6 +186,7 @@ void plotgraphs(
   Int_t etaArgIdx;
 
   Int_t valueIdx;
+  Int_t selectedIdx;
 
   std::string fname_pre = inputDir + "/";
   std::string pngPrefix;
@@ -180,6 +199,7 @@ void plotgraphs(
 
   if (graphType == efficiency) {
     valueIdx = 6;
+    selectedIdx = -1;
 
     fname_pre += "real_tracks_";
     pngPrefix = "efficiency";
@@ -219,6 +239,7 @@ void plotgraphs(
   }
   else if (graphType == duplicateRate){
     valueIdx = 3;
+    selectedIdx = 7;
 
     fname_pre += "track_candidates_";
     pngPrefix = "dup";
@@ -254,7 +275,7 @@ void plotgraphs(
         return;
       }
       yMin =    0.;
-      yMax =   0.3;
+      yMax =   0.4;
       if (ifRAW) {
         yMin = 0;
         yMax = 1;
@@ -265,6 +286,7 @@ void plotgraphs(
     }
   } else if (graphType == fakeRate) {
     valueIdx = 2;
+    selectedIdx = 7;
 
     fname_pre += "track_candidates_";
     pngPrefix = "fakeRate";
@@ -272,7 +294,7 @@ void plotgraphs(
     yLabel = "Fake rate";
 
     yMin = 0;
-    yMax = 0.013;
+    yMax = 0.025;
 
 //  yMax = 1;
 
@@ -303,15 +325,15 @@ void plotgraphs(
     }
   }
 
-  Double_t minArgument;
-  Double_t maxArgument;
+  Double_t minArg;
+  Double_t maxArg;
   std::string xLabel;
 
   std::string rootNamePostfix;
 
   if (graphArgument == pt) {
-    minArgument = 0.1; // 100 MeV
-    maxArgument = 3.0; // max = 3.7... ;
+    minArg = 0.1; // 100 MeV
+    maxArg = 3.0; // max = 3.7... ;
 
     xLabel = "Truth pT [GeV/c]";
 
@@ -319,16 +341,16 @@ void plotgraphs(
     rootNamePostfix = "pt";
 
   } else if (graphArgument == eta) {
-    minArgument = -1.5;
-    maxArgument =  1.5;
+    minArg = -1.2;
+    maxArg =  1.2;
     xLabel = "Truth #eta";
 
     pngPostfix = "eta" + pngPostfix;
     rootNamePostfix = "eta";
 
   } else if (graphArgument == multiplicity) {
-    minArgument = 0;
-    maxArgument = 900;
+    minArg = 0;
+    maxArg = 900;
     xLabel = "Truth multiplicity";
 
     std::string postfix = "multiplicity";
@@ -355,46 +377,53 @@ void plotgraphs(
 
   auto *canv = new TCanvas("Efficiency", "", 2048, 1496);
 
-  std::cout << "minArgument: " << minArgument << "; " <<
-               "maxArgument: " << maxArgument << "; " <<
+  std::cout << "minArg: " << minArg << "; " <<
+               "maxArg: " << maxArg << "; " <<
                "nBins: "       << nBins       <<
                std::endl;
 
   Int_t lineWidth = 3;
   TEfficiency *teffHCF = createTEff("HCF", "HCF;" + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kRed, kFullCircle);
+      nBins, minArg, maxArg, lineWidth, kRed, kFullCircle);
   TEfficiency *teffPGM = createTEff("PGM", "PGM;"  + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kBlue, kFullCircle);
+      nBins, minArg, maxArg, lineWidth, kBlue, kFullCircle);
   TEfficiency *teffNNS = createTEff("NNS", "NNS;" + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kCyan, kFullSquare);
+      nBins, minArg, maxArg, lineWidth, kCyan, kFullSquare);
   TEfficiency *teffPGS = createTEff("PGS", "PGS;" + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kGreen, kFullSquare);
+      nBins, minArg, maxArg, lineWidth, kGreen, kFullSquare);
   TEfficiency *teffPWM = createTEff("PWM", "PWM;" + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kMagenta, kFullSquare);
+      nBins, minArg, maxArg, lineWidth, kMagenta, kFullSquare);
   TEfficiency *teffPWS = createTEff("PWS", "PWS;" + xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kGreen - 2, kFullSquare);
+      nBins, minArg, maxArg, lineWidth, kGreen - 2, kFullSquare);
   TEfficiency *teffRAW = createTEff("RAW", "RAW;"+ xLabel + ";" + yLabel,
-      nBins, minArgument, maxArgument, lineWidth, kBlack, kFullSquare);
+      nBins, minArg, maxArg, lineWidth, kBlack, kFullSquare);
 
   // Selector options
-  Bool_t selectorEnabled = false;
+  Bool_t selectorEnabled = true;
   Double_t selPtMin = 0.1;
-  Double_t selAbsEtaMax = 1.5;
+  Double_t selEtaMax = 1.5;
 
-  fill_teff_from_file(teffPGM, argIdx, valueIdx, fname_pre + PGM + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffHCF, argIdx, valueIdx, fname_pre + HCF + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffNNS, argIdx, valueIdx, fname_pre + NNS + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffPGS, argIdx, valueIdx, fname_pre + PGS + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffPWM, argIdx, valueIdx, fname_pre + PWM + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffPWS, argIdx, valueIdx, fname_pre + PWS + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
-  fill_teff_from_file(teffRAW, argIdx, valueIdx, fname_pre + RAW + ".txt",
-      selectorEnabled, ptArgIdx, etaArgIdx, selPtMin, selAbsEtaMax);
+  fill_teff_from_file(teffPGM, argIdx, valueIdx,
+      fname_pre + PGM + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffHCF, argIdx, valueIdx,
+      fname_pre + HCF + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffNNS, argIdx, valueIdx,
+      fname_pre + NNS + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffPGS, argIdx, valueIdx,
+      fname_pre + PGS + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffPWM, argIdx, valueIdx,
+      fname_pre + PWM + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffPWS, argIdx, valueIdx,
+      fname_pre + PWS + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
+  fill_teff_from_file(teffRAW, argIdx, valueIdx,
+      fname_pre + RAW + ".txt", selectorEnabled,
+      ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
 
   teffPGM->Draw("");
   teffNNS->Draw("same");
