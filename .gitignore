@@ -3,3 +3,6 @@
 *.png
 log_params
 venv
+__pycache__
+.vscode
+.DS_Store

@@ -15,6 +15,7 @@ class SettingParams:
     ratio: float = 0.5
 
     # Start settings
+    input_dir: str = "data/tracks_data"
     start_event: int = 2
     end_event: int = 2
     num_workers: int = 4

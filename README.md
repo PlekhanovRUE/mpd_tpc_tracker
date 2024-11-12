@@ -31,6 +31,23 @@ python parallel_analyse_example.py
 config.py file contains some work settings that you can change at your discretion - such as the number of threads 
 for processing tracks, which events will be processed, etc.
 
+## Try to plot post-processing graphs
+To use it you need to install root!
+Installation guide: [root-installation](https://root.cern/install/)
+
+You can plot root graphs after post-processing by running the following command (example)
+```shell
+root 'analyse/plotgraphs.C(".", ".", "", eff, mult)'
+```
+or you can perform the whole post-processing by running the following command (default launch options are taken from config.py file)
+```shell
+python run_post_processing.py
+```
+You can also run the following command to learn about all available launch options
+```shell
+python run_post_processing.py -h
+```
+
 # Try Visualization
 To use it you need GUI on your system!
 

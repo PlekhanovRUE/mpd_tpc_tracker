@@ -1,6 +1,5 @@
 from statistics import mean
 import os
-import re
 import datetime
 import logging
 
@@ -323,7 +322,7 @@ def eval_metrics_avg(tracks, track_type, metrics_type=Real_track_params.EFF):
   return res, effs
 
 
-def main(input_dir):
+def count_fakes(input_dir):
   logger = logging.getLogger()
   logger.setLevel(logging.DEBUG)
 
@@ -407,11 +406,12 @@ def main(input_dir):
     results[Results.FAKES_AVG] = f"{fakes_avg:.7}"
     if logger.isEnabledFor(logging.DEBUG):
       str_ += f", fakes_avg: {fake_avg_lst}, {fakes_avg:.7}"
-      results[Results.FAKES_AVG_COMMENT] = f"{fakes_avg_lst}"
+      results[Results.FAKES_AVG_COMMENT] = f"{fake_avg_lst}"
     else:
       str_ += f", fakes_avg: {fakes_avg:.7}"
 
     logging.info(str_)
 
 
-main(INPUT_DIR)
+if __name__ == "__main__":
+  count_fakes(INPUT_DIR)

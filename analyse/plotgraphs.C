@@ -42,13 +42,13 @@ constexpr auto duplicates = GraphType::duplicateRate;
 constexpr auto fakes = GraphType::fakeRate;
 constexpr auto mult = GraphArgument::multiplicity;
 
-const std::string PGM = "PGM";
-const std::string HCF = "HCF";
-const std::string NNS = "NNS";
-const std::string PGS = "PGS";
-const std::string PWM = "PWM";
-const std::string PWS = "PWS";
-const std::string RAW = "RAW";
+const std::string pgm = "PGM";
+const std::string hcf = "HCF";
+const std::string nns = "NNS";
+const std::string pgs = "PGS";
+const std::string pwm = "PWM";
+const std::string pws = "PWS";
+const std::string raw = "RAW";
 
 TEfficiency *createTEff(
     std::string name,
@@ -404,25 +404,25 @@ void plotgraphs(
   Double_t selEtaMax = 1.5;
 
   fill_teff_from_file(teffPGM, argIdx, valueIdx,
-      fname_pre + PGM + ".txt", selectorEnabled,
+      fname_pre + pgm + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffHCF, argIdx, valueIdx,
-      fname_pre + HCF + ".txt", selectorEnabled,
+      fname_pre + hcf + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffNNS, argIdx, valueIdx,
-      fname_pre + NNS + ".txt", selectorEnabled,
+      fname_pre + nns + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffPGS, argIdx, valueIdx,
-      fname_pre + PGS + ".txt", selectorEnabled,
+      fname_pre + pgs + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffPWM, argIdx, valueIdx,
-      fname_pre + PWM + ".txt", selectorEnabled,
+      fname_pre + pwm + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffPWS, argIdx, valueIdx,
-      fname_pre + PWS + ".txt", selectorEnabled,
+      fname_pre + pws + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
   fill_teff_from_file(teffRAW, argIdx, valueIdx,
-      fname_pre + RAW + ".txt", selectorEnabled,
+      fname_pre + raw + ".txt", selectorEnabled,
       ptArgIdx, etaArgIdx, selectedIdx, selPtMin, selEtaMax);
 
   teffPGM->Draw("");
