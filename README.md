@@ -11,7 +11,7 @@ Repository organization:
 5) post_processing folder - Contains the post-processing methods we developed
 
 # OS and Python
-_All tests were performed in Python-3.10 on Ubuntu-22.04_
+_All tests were performed on Python–3.10 on Ubuntu–22.04 and MacOs–12.5_
 
 # Installation
 ```shell
@@ -34,12 +34,13 @@ for processing tracks, which events will be processed, etc.
 ## Try to plot post-processing graphs
 To use it you need to install root!
 Installation guide: [root-installation](https://root.cern/install/)
+_All tests were performed on ROOT Version: 6.32_
 
 You can plot root graphs after post-processing by running the following command (example)
 ```shell
 root 'analyse/plotgraphs.C(".", ".", "", eff, mult)'
 ```
-or you can perform the whole post-processing by running the following command (default launch options are taken from config.py file)
+or you can perform the whole post-processing (with graphs) by running the following command. Default launch options are taken from config.py file
 ```shell
 python run_post_processing.py
 ```

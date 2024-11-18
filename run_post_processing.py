@@ -12,7 +12,11 @@ def main():
 
     parser = ArgumentParser(
         usage='''
-    Run run_post_processing.py -h for more information about args and keys.
+    To run without plotting graphs specify -no_plot flag:
+        python run_post_processing.py -no_plot
+    To run with plotting all available plots and default path directories:
+        python run_post_processing.py
+    Run python run_post_processing.py -h for more information about args and keys.
         ''',
         description='Post Processing Runner')
 
@@ -22,11 +26,12 @@ def main():
                         help='plot root graphs (default: True)')
     parser.add_argument('-plot_args',
                         dest='plot_args',
-                        default='eff_mult',
+                        default='all',
                         choices=['eff_pt', 'eff_eta', 'eff_mult',
                                  'duplicates_pt', 'duplicates_eta',
-                                 'duplicates_mult', 'fakes_mult'],
-                        help='params to plot graphs')
+                                 'duplicates_mult', 'fakes_mult',
+                                 'all'],
+                        help='params to plot graphs (default: all)')
     parser.add_argument('-input_dir',
                         dest='input_dir',
                         default=SettingParams.input_dir,
@@ -37,7 +42,6 @@ def main():
                         help='directory with post processing results')
 
     args = parser.parse_args()
-    y, x = args.plot_args.split("_", maxsplit=1)
 
     if not os.path.isdir(args.input_dir):
         print('Wrong input dir path.')
@@ -51,9 +55,22 @@ def main():
         sys.exit(1)
     count_fakes(args.result_dir)
     if args.plot_graphs:
-        cmd = ["root", f"analyse/plotgraphs.C(\"{args.result_dir}\", \"{args.result_dir}\", \"\", {y}, {x})"]
-        with subprocess.Popen(cmd, text=True) as process_paint:
-            process_paint.wait()
+        if args.plot_args == 'all':
+            for plot_arg in (('eff', 'pt'), ('eff', 'eta'), ('eff', 'mult'),
+                             ('duplicates', 'pt'), ('duplicates', 'eta'),
+                             ('duplicates', 'mult'), ('fakes', 'mult')):
+                cmd = ["root", "-q",
+                       f"analyse/plotgraphs.C(\"{args.result_dir}\", \"{args.result_dir}\", "
+                       f"\"\", {plot_arg[0]}, {plot_arg[1]})"]
+                with subprocess.Popen(cmd, text=True) as process_paint:
+                    process_paint.wait()
+        else:
+            y, x = args.plot_args.split("_", maxsplit=1)
+            cmd = ["root", "-q",
+                   f"analyse/plotgraphs.C(\"{args.result_dir}\", \"{args.result_dir}\", "
+                   f"\"\", {y}, {x})"]
+            with subprocess.Popen(cmd, text=True) as process_paint:
+                process_paint.wait()
 
 
 if __name__ == "__main__":
