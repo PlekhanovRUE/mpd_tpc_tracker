@@ -19,7 +19,7 @@ search_space = {}
 
 fixed_params = {
     "EtaMax": 2.11,
-    "PtMin": 0.0,
+    "PtMin": 0.1,
     "CollisionZmin": -300.0,
     "CollisionZmax": 300.0,
     "SeedBinSizeR": 10.0,
