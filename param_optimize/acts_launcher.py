@@ -35,9 +35,10 @@ def _run_acts(
         n_events=None):
 
     bin_dir = get_mpdroot_bin_dir()
-    macro = os.path.join(bin_dir, 'macros', 'common', 'trackingActs.C')
+    macro = os.path.join(bin_dir, 'macros', 'common', 'runReco.C')
     macro_s = f'{macro}("{infile}", "{outfile}", {start_event}, ' + \
-        f'{n_events}, EQAMode::OFF, "{json_fname}")'
+              f'{n_events}, ETpcClustering::MLEM, ETpcTracking::ACTS, ' + \
+              f'EQAMode::OFF, "{json_fname}")'
     cmd_l = ['root', '-q', '-b', f"'{macro_s}'"]
     cmd_s = ' '.join(cmd_l)
     out = subprocess.run(
@@ -124,7 +125,7 @@ def run_acts(
         start_event=start_event,
         n_events=n_events,
         outfile=outfile)
-    if log:
+    if log or log_dir:
         save_log(log_dir, stdout)
     eff_sel, fake_sel, memory = parse_output(stdout)
     return eff_sel, fake_sel, memory
