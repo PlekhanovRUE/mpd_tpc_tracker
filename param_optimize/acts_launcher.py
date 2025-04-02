@@ -4,6 +4,9 @@ import re
 import shutil
 import subprocess
 
+# import logging
+# my_logger = logging.getLogger('my_logger')
+# my_logger.setLevel(logging.DEBUG)
 
 def gen_logfile_name(postfix=''):
     now = datetime.datetime.now()
@@ -11,9 +14,11 @@ def gen_logfile_name(postfix=''):
     return f"acts_{timestamp}{postfix}.txt"
 
 
-def save_log(path, stdout, zip_log=True):
-    fshort = gen_logfile_name()
+def save_log(path, stdout, zip_log=True, postfix=''):
+
+    fshort = gen_logfile_name(postfix)
     fname = os.path.join(path, fshort)
+
     with open(fname, 'w') as f:
         f.write(stdout)
     if zip_log:
@@ -32,15 +37,20 @@ def _run_acts(
         json_fname,
         outfile=None,
         start_event=None,
-        n_events=None):
+        n_events=None,
+        digi=None):
 
     bin_dir = get_mpdroot_bin_dir()
     macro = os.path.join(bin_dir, 'macros', 'common', 'runReco.C')
     macro_s = f'{macro}("{infile}", "{outfile}", {start_event}, ' + \
-              f'{n_events}, ETpcClustering::MLEM, ETpcTracking::ACTS, ' + \
+              f'{n_events}, {digi}, ETpcTracking::ACTS, ' + \
               f'EQAMode::OFF, "{json_fname}")'
     cmd_l = ['root', '-q', '-b', f"'{macro_s}'"]
     cmd_s = ' '.join(cmd_l)
+
+    # To estimate memory consumption
+    cmd_s = "/usr/bin/time -v " + cmd_s
+
     out = subprocess.run(
             cmd_s, text=True, shell=True,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -104,7 +114,9 @@ def run_acts(
         start_event=0,
         n_events=2,
         log=False,
-        log_dir=''):
+        log_dir='',
+        log_postfix=''):
+
     bin_dir = get_mpdroot_bin_dir()
     if not json_out_dir:
         json_out_dir = os.path.join(bin_dir, 'etc')
@@ -124,9 +136,10 @@ def run_acts(
         json_fname=json_fname_out,
         start_event=start_event,
         n_events=n_events,
-        outfile=outfile)
+        outfile=outfile,
+        digi="ETpcClustering::MLEM")
     if log or log_dir:
-        save_log(log_dir, stdout)
+        save_log(log_dir, stdout, postfix=log_postfix)
     eff_sel, fake_sel, memory = parse_output(stdout)
     return eff_sel, fake_sel, memory
 
@@ -136,3 +149,4 @@ def test(infile, json):
 #json = '/path/to/acts_params_config.json'
     eff = run_acts(infile=infile, json_fname=json, log=True, log_dir='/tmp')
     print(f"eff = {eff}")
+#   logging.warning(f"{eff=}")
